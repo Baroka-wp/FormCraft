@@ -52,10 +52,11 @@
 
         .container {
             display: grid;
-            grid-template-columns: 280px 1fr 1fr;
+            grid-template-columns: 1fr 1fr;
             min-height: 100vh;
             gap: 0;
             position: relative;
+            margin-left: 280px;
         }
 
         /* === SIDEBAR === */
@@ -65,10 +66,15 @@
             border-right: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
-            position: relative;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: 280px;
             overflow-y: auto;
             scrollbar-width: thin;
             scrollbar-color: var(--accent-primary) transparent;
+            z-index: 1000;
         }
 
         .sidebar::-webkit-scrollbar {
@@ -344,6 +350,131 @@
             background: rgba(233, 30, 99, 0.2) !important;
             transform: translateY(-2px);
             box-shadow: 0 4px 20px rgba(233, 30, 99, 0.3) !important;
+        }
+
+        .edit-btn.share-btn {
+            border: 1px solid rgba(139, 195, 74, 0.3);
+            cursor: pointer;
+        }
+
+        .edit-btn.share-btn:hover {
+            background: rgba(139, 195, 74, 0.2) !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(139, 195, 74, 0.3) !important;
+        }
+
+        /* Modal de partage */
+        .share-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            z-index: 10000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .share-modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .share-modal-content {
+            background: var(--bg-card);
+            border-radius: 1rem;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: var(--shadow-card);
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .share-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent-primary);
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .share-description {
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .share-link-container {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .share-link {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: var(--accent-primary);
+            word-break: break-all;
+            margin-bottom: 0.5rem;
+        }
+
+        .share-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .share-action-btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .copy-btn {
+            background: var(--accent-primary);
+            color: white;
+        }
+
+        .copy-btn:hover {
+            background: #1b3209;
+            transform: translateY(-2px);
+        }
+
+        .close-btn {
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+
+        .close-btn:hover {
+            background: var(--cream);
+        }
+
+        .copy-success {
+            background: var(--success-color) !important;
         }
 
         .form-description {
@@ -666,11 +797,15 @@
         @media (max-width: 968px) {
             .container {
                 grid-template-columns: 1fr;
-                grid-template-rows: auto auto 1fr;
+                grid-template-rows: auto 1fr;
                 min-height: 100vh;
+                margin-left: 0;
             }
 
             .sidebar {
+                position: relative;
+                width: 100%;
+                height: auto;
                 border-right: none;
                 border-bottom: 1px solid var(--border-color);
             }
@@ -843,14 +978,7 @@
                                 </a>
                             </div>
                         </li>
-                        <li class="menu-item">
-                            <div class="menu-item-content">
-                                <a href="/api/docs" class="menu-link" target="_blank">
-                                    <span class="menu-icon">🔗</span>
-                                    <span>API REST</span>
-                                </a>
-                            </div>
-                        </li>
+
                     </ul>
                 </div>
                 
@@ -893,7 +1021,11 @@
         <div class="form-section">
             <div class="form-header">
                 <h2 class="section-title">{{ form_info.title }}</h2>
-                <div style="display: flex; gap: 0.75rem;">
+                <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                    <button onclick="shareForm('{{ form_info.public_token }}')" class="edit-btn share-btn" style="background: rgba(139, 195, 74, 0.1); color: #4a7c59; border-color: rgba(139, 195, 74, 0.3);">
+                        <span>🔗</span>
+                        <span>Partager</span>
+                    </button>
                     <a href="/form/{{ current_form }}/integration" class="edit-btn integration" style="background: rgba(233, 30, 99, 0.1); color: var(--accent-secondary); border-color: rgba(233, 30, 99, 0.3);">
                         <span>🔌</span>
                         <span>Intégration</span>
@@ -1004,6 +1136,29 @@
         </div>
     </div>
 
+    <!-- Modal de partage -->
+    <div id="shareModal" class="share-modal">
+        <div class="share-modal-content">
+            <h3 class="share-title">🔗 Partager le formulaire</h3>
+            <p class="share-description">
+                Copiez ce lien pour permettre à d'autres personnes de remplir le formulaire sans accéder à l'interface d'administration.
+            </p>
+            <div class="share-link-container">
+                <div id="shareLink" class="share-link"></div>
+            </div>
+            <div class="share-buttons">
+                <button class="share-action-btn copy-btn" onclick="copyShareLink()">
+                    <span>📋</span>
+                    <span>Copier le lien</span>
+                </button>
+                <button class="share-action-btn close-btn" onclick="closeShareModal()">
+                    <span>✖️</span>
+                    <span>Fermer</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         function deleteForm(formName, formTitle) {
             const confirmed = confirm(
@@ -1052,6 +1207,66 @@
                 form.submit();
             }
         }
+
+        // Fonctions pour le partage
+        function shareForm(token) {
+            const baseUrl = window.location.origin;
+            const shareUrl = `${baseUrl}/public/${token}`;
+            
+            document.getElementById('shareLink').textContent = shareUrl;
+            document.getElementById('shareModal').classList.add('active');
+        }
+
+        function closeShareModal() {
+            document.getElementById('shareModal').classList.remove('active');
+        }
+
+        function copyShareLink() {
+            const shareLink = document.getElementById('shareLink').textContent;
+            const copyBtn = document.querySelector('.copy-btn');
+            
+            navigator.clipboard.writeText(shareLink).then(() => {
+                // Feedback visuel
+                const originalContent = copyBtn.innerHTML;
+                copyBtn.innerHTML = '<span>✅</span><span>Copié !</span>';
+                copyBtn.classList.add('copy-success');
+                
+                setTimeout(() => {
+                    copyBtn.innerHTML = originalContent;
+                    copyBtn.classList.remove('copy-success');
+                }, 2000);
+            }).catch(err => {
+                console.error('Erreur lors de la copie:', err);
+                // Fallback pour navigateurs qui ne supportent pas clipboard API
+                const textArea = document.createElement('textarea');
+                textArea.value = shareLink;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                
+                // Feedback
+                const originalContent = copyBtn.innerHTML;
+                copyBtn.innerHTML = '<span>✅</span><span>Copié !</span>';
+                setTimeout(() => {
+                    copyBtn.innerHTML = originalContent;
+                }, 2000);
+            });
+        }
+
+        // Fermer le modal en cliquant en dehors
+        document.getElementById('shareModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeShareModal();
+            }
+        });
+
+        // Fermer le modal avec la touche Escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeShareModal();
+            }
+        });
 
         // Animations au chargement
         document.addEventListener('DOMContentLoaded', function() {

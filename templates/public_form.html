@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ form_info.title }} - FormCraft</title>
+    <style>
+        /* File: public_form.html */
+        /* Purpose: Interface publique pour formulaires sans sidebar admin */
+        /* Design: Style japonais épuré et responsive */
+        
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+        
+        :root {
+            /* Style japonais - couleurs douces et naturelles */
+            --bg-primary: #faf9f7;
+            --bg-secondary: #f5f3f0;
+            --bg-card: rgba(255, 255, 255, 0.9);
+            --accent-primary: #2d5016;        /* Vert matcha foncé */
+            --accent-secondary: #e91e63;      /* Rose sakura */
+            --accent-gradient: linear-gradient(135deg, #4a7c59, #e91e63);
+            --text-primary: #2c2c2c;
+            --text-secondary: #666666;
+            --text-muted: #999999;
+            --border-color: rgba(45, 80, 22, 0.1);
+            --success-color: #4a7c59;         /* Vert bambou */
+            --danger-color: #d32f2f;
+            --warning-color: #ff9800;
+            --shadow-glow: 0 0 20px rgba(74, 124, 89, 0.2);
+            --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.1);
+            --matcha-light: #8bc34a;          /* Vert matcha clair */
+            --sakura-light: #fce4ec;          /* Rose sakura clair */
+            --cream: #fff8e1;                 /* Crème */
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(74, 124, 89, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(233, 30, 99, 0.05) 0%, transparent 50%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .logo {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 2rem;
+            font-weight: 700;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+            animation: glow 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { filter: drop-shadow(0 0 5px rgba(74, 124, 89, 0.3)); }
+            to { filter: drop-shadow(0 0 15px rgba(233, 30, 99, 0.3)); }
+        }
+
+        .form-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+        }
+
+        .form-description {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .form-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 1.5rem;
+            padding: 2.5rem;
+            box-shadow: var(--shadow-card);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .form-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--accent-gradient);
+        }
+
+        /* Messages d'erreur */
+        .error-messages {
+            background: rgba(211, 47, 47, 0.1);
+            border: 1px solid rgba(211, 47, 47, 0.3);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            color: var(--danger-color);
+        }
+
+        .error-messages h4 {
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+        }
+
+        .error-messages ul {
+            margin: 0;
+            padding-left: 1.25rem;
+        }
+
+        .error-messages li {
+            margin-bottom: 0.25rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.75rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+            font-size: 1rem;
+        }
+
+        .required {
+            color: var(--danger-color);
+            margin-left: 0.25rem;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            background: white;
+            border: 2px solid var(--border-color);
+            border-radius: 0.75rem;
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            line-height: 1.5;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 4px rgba(74, 124, 89, 0.1);
+            background: var(--cream);
+            transform: translateY(-2px);
+        }
+
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: var(--text-muted);
+        }
+
+        /* Field error state */
+        .form-group.error input,
+        .form-group.error textarea {
+            border-color: var(--danger-color);
+            background: rgba(211, 47, 47, 0.05);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 1.25rem 2rem;
+            background: var(--accent-gradient);
+            color: white;
+            border: none;
+            border-radius: 1rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            margin-top: 1rem;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .submit-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 3rem;
+            padding: 2rem;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .powered-by {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            background: var(--sakura-light);
+            transition: all 0.3s ease;
+        }
+
+        .powered-by:hover {
+            transform: translateY(-2px);
+            color: var(--accent-primary);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem 0.5rem;
+            }
+
+            .container {
+                max-width: 100%;
+            }
+
+            .form-card {
+                padding: 1.5rem;
+                border-radius: 1rem;
+            }
+
+            .form-title {
+                font-size: 1.5rem;
+            }
+
+            .logo {
+                font-size: 1.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .form-card {
+                padding: 1rem;
+            }
+
+            .form-group input,
+            .form-group textarea {
+                padding: 0.875rem 1rem;
+            }
+
+            .submit-btn {
+                padding: 1rem 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="logo">FormCraft</h1>
+            <h2 class="form-title">{{ form_info.title }}</h2>
+            {% if form_info.description %}
+                <p class="form-description">{{ form_info.description }}</p>
+            {% endif %}
+        </div>
+
+        <div class="form-card">
+            {% if errors %}
+                <div class="error-messages">
+                    <h4>⚠️ Veuillez corriger les erreurs suivantes :</h4>
+                    <ul>
+                        {% for error in errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+
+            <form method="POST">
+                {% for field in fields %}
+                    <div class="form-group">
+                        <label for="{{ field.name }}">
+                            {{ field.label }}
+                            {% if field.required %}<span class="required">*</span>{% endif %}
+                        </label>
+                        
+                        {% if field.type == 'textarea' %}
+                            <textarea id="{{ field.name }}" 
+                                    name="{{ field.name }}" 
+                                    placeholder="Saisissez {{ field.label|lower }}"
+                                    {% if field.required %}required{% endif %}>{{ form_data.get(field.name, '') }}</textarea>
+                        {% else %}
+                            <input type="{{ field.type }}" 
+                                   id="{{ field.name }}" 
+                                   name="{{ field.name }}" 
+                                   placeholder="Saisissez {{ field.label|lower }}"
+                                   value="{{ form_data.get(field.name, '') }}"
+                                   {% if field.required %}required{% endif %}
+                                   {% if field.type == 'number' %}min="0"{% endif %}>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+
+                <button type="submit" class="submit-btn">
+                    ✨ Envoyer {{ form_info.title }}
+                </button>
+            </form>
+        </div>
+
+        <div class="footer">
+            <p>Formulaire sécurisé et privé</p>
+            <a href="https://formcraft.example.com" class="powered-by" target="_blank">
+                <span>⚡</span>
+                <span>Powered by FormCraft</span>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Animation au chargement
+        document.addEventListener('DOMContentLoaded', function() {
+            const formCard = document.querySelector('.form-card');
+            formCard.style.opacity = '0';
+            formCard.style.transform = 'translateY(30px)';
+            
+            setTimeout(() => {
+                formCard.style.transition = 'all 0.8s ease';
+                formCard.style.opacity = '1';
+                formCard.style.transform = 'translateY(0)';
+            }, 100);
+
+            // Animation des champs lors du focus
+            const inputs = document.querySelectorAll('input, textarea');
+            inputs.forEach(input => {
+                input.addEventListener('focus', function() {
+                    this.parentElement.style.transform = 'scale(1.02)';
+                });
+                
+                input.addEventListener('blur', function() {
+                    this.parentElement.style.transform = 'scale(1)';
+                });
+            });
+        });
+    </script>
+</body>
+</html> 

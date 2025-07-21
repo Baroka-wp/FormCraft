@@ -2,6 +2,7 @@ from flask import Flask, request, render_template, redirect, url_for, flash, jso
 import sqlite3
 import os
 import json
+import secrets
 
 app = Flask(__name__)
 app.secret_key = 'votre_clé_secrète_ici'  # Changez ceci en production
@@ -16,20 +17,9 @@ if not os.path.exists(DATABASE_DIR):
     os.makedirs(DATABASE_DIR)
 
 def init_db():
-    """Initialise la base de données avec les tables users et forms"""
+    """Initialise la base de données avec la table forms"""
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
-    
-    # Table users (formulaire par défaut)
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            nom TEXT NOT NULL,
-            prenom TEXT NOT NULL,
-            age INTEGER NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    ''')
     
     # Table pour stocker les formulaires créés
     cursor.execute('''
@@ -40,6 +30,7 @@ def init_db():
             description TEXT,
             fields TEXT NOT NULL,
             database_file TEXT NOT NULL,
+            public_token TEXT UNIQUE,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
@@ -280,13 +271,16 @@ def create_form():
                     # Créer la table dans la nouvelle base de données
                     create_custom_form_database(db_path, fields)
                     
+                    # Générer un token unique pour l'accès public
+                    public_token = secrets.token_urlsafe(32)
+                    
                     # Enregistrer le formulaire dans la base principale
                     conn = get_db_connection()
                     cursor = conn.cursor()
                     cursor.execute('''
-                        INSERT INTO forms (name, title, description, fields, database_file)
-                        VALUES (?, ?, ?, ?, ?)
-                    ''', (form_name, form_title, form_description, json.dumps(fields), db_filename))
+                        INSERT INTO forms (name, title, description, fields, database_file, public_token)
+                        VALUES (?, ?, ?, ?, ?, ?)
+                    ''', (form_name, form_title, form_description, json.dumps(fields), db_filename, public_token))
                     
                     conn.commit()
                     conn.close()
@@ -930,6 +924,80 @@ def form_integration(form_name):
                          example_data=example_data,
                          base_url=request.host_url.rstrip('/'))
 
+@app.route('/public/<token>', methods=['GET', 'POST'])
+def public_form(token):
+    """Formulaire public accessible via un token unique"""
+    # Récupérer le formulaire par son token
+    conn = get_db_connection()
+    form_info = conn.execute(
+        'SELECT * FROM forms WHERE public_token = ?', (token,)
+    ).fetchone()
+    
+    if not form_info:
+        return render_template('public_error.html'), 404
+    
+    # Parser les champs
+    try:
+        fields = json.loads(form_info['fields'])
+    except:
+        return render_template('public_error.html'), 500
+    
+    if request.method == 'POST':
+        # Traitement de la soumission du formulaire public
+        form_data = {}
+        errors = []
+        
+        # Validation des champs
+        for field in fields:
+            field_name = field['name']
+            field_value = request.form.get(field_name, '').strip()
+            
+            # Vérification des champs requis
+            if field['required'] and not field_value:
+                errors.append(f"Le champ '{field['label']}' est requis")
+                continue
+            
+            # Validation selon le type
+            if field['type'] == 'email' and field_value:
+                if '@' not in field_value:
+                    errors.append(f"'{field['label']}' doit être un email valide")
+            elif field['type'] == 'number' and field_value:
+                try:
+                    field_value = int(field_value)
+                except:
+                    errors.append(f"'{field['label']}' doit être un nombre")
+            
+            form_data[field_name] = field_value
+        
+        if errors:
+            conn.close()
+            return render_template('public_form.html', 
+                                 form_info=form_info, 
+                                 fields=fields,
+                                 errors=errors,
+                                 form_data=form_data)
+        else:
+            # Enregistrement en base de données
+            try:
+                form_db_path = os.path.join(DATABASE_DIR, form_info['database_file'])
+                save_form_entry(form_db_path, fields, form_data)
+                conn.close()
+                return render_template('public_success.html', form_info=form_info)
+            except Exception as e:
+                conn.close()
+                return render_template('public_form.html', 
+                                     form_info=form_info, 
+                                     fields=fields,
+                                     errors=[f'Erreur lors de l\'enregistrement : {str(e)}'],
+                                     form_data=form_data)
+    
+    conn.close()
+    return render_template('public_form.html', 
+                         form_info=form_info, 
+                         fields=fields,
+                         errors=[],
+                         form_data={})
+
 @app.route('/api/docs', methods=['GET'])
 def api_documentation():
     """Documentation de l'API REST"""
@@ -1006,78 +1074,17 @@ def api_documentation():
     
     return jsonify(docs)
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/', methods=['GET'])
 def index():
-    """Route principale pour afficher le formulaire et traiter l'enregistrement"""
-    if request.method == 'POST':
-        # Récupération des données du formulaire
-        nom = request.form.get('nom', '').strip()
-        prenom = request.form.get('prenom', '').strip()
-        age = request.form.get('age', '').strip()
-        
-        # Validation des données
-        errors = []
-        if not nom:
-            errors.append('Le nom est requis')
-        if not prenom:
-            errors.append('Le prénom est requis')
-        if not age:
-            errors.append('L\'âge est requis')
-        else:
-            try:
-                age = int(age)
-                if age < 0 or age > 150:
-                    errors.append('L\'âge doit être entre 0 et 150 ans')
-            except ValueError:
-                errors.append('L\'âge doit être un nombre valide')
-        
-        if errors:
-            for error in errors:
-                flash(error, 'error')
-        else:
-            # Enregistrement en base de données
-            try:
-                conn = get_db_connection()
-                cursor = conn.cursor()
-                cursor.execute(
-                    'INSERT INTO users (nom, prenom, age) VALUES (?, ?, ?)',
-                    (nom, prenom, age)
-                )
-                conn.commit()
-                conn.close()
-                flash(f'Utilisateur {prenom} {nom} enregistré avec succès !', 'success')
-                return redirect(url_for('index'))
-            except Exception as e:
-                flash(f'Erreur lors de l\'enregistrement : {str(e)}', 'error')
-    
-    # Récupération de tous les utilisateurs pour affichage
+    """Route principale pour afficher le dashboard des formulaires"""
+    # Récupération de tous les formulaires
     conn = get_db_connection()
-    users = conn.execute('SELECT * FROM users ORDER BY created_at DESC').fetchall()
-    
-    # Récupération de tous les formulaires pour la sidebar
     forms = conn.execute('SELECT * FROM forms ORDER BY created_at DESC').fetchall()
     conn.close()
     
-    return render_template('index.html', users=users, forms=forms)
+    return render_template('index.html', forms=forms)
 
-@app.route('/api/users', methods=['GET'])
-def api_users():
-    """API pour récupérer la liste des utilisateurs en JSON"""
-    conn = get_db_connection()
-    users = conn.execute('SELECT * FROM users ORDER BY created_at DESC').fetchall()
-    conn.close()
-    
-    users_list = []
-    for user in users:
-        users_list.append({
-            'id': user['id'],
-            'nom': user['nom'],
-            'prenom': user['prenom'],
-            'age': user['age'],
-            'created_at': user['created_at']
-        })
-    
-    return jsonify(users_list)
+
 
 if __name__ == '__main__':
     # Initialisation de la base de données au démarrage

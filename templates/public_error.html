@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulaire non trouvé - FormCraft</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+        
+        :root {
+            --bg-primary: #faf9f7;
+            --bg-secondary: #f5f3f0;
+            --bg-card: rgba(255, 255, 255, 0.9);
+            --accent-primary: #2d5016;
+            --accent-secondary: #e91e63;
+            --text-primary: #2c2c2c;
+            --text-secondary: #666666;
+            --text-muted: #999999;
+            --danger-color: #d32f2f;
+            --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.1);
+            --sakura-light: #fce4ec;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(74, 124, 89, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(233, 30, 99, 0.05) 0%, transparent 50%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 500px;
+            text-align: center;
+        }
+
+        .error-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(211, 47, 47, 0.2);
+            border-radius: 1.5rem;
+            padding: 3rem 2rem;
+            box-shadow: var(--shadow-card);
+            position: relative;
+            overflow: hidden;
+            animation: slideUp 0.8s ease;
+        }
+
+        .error-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(135deg, var(--danger-color), var(--accent-secondary));
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .error-icon {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+            animation: shake 0.8s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-3px); }
+            20%, 40%, 60%, 80% { transform: translateX(3px); }
+        }
+
+        .error-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--danger-color);
+            margin-bottom: 1rem;
+        }
+
+        .error-message {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+
+        .error-code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            background: var(--bg-secondary);
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .powered-by {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            background: var(--sakura-light);
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+        }
+
+        .powered-by:hover {
+            transform: translateY(-2px);
+            color: var(--accent-primary);
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .error-card {
+                padding: 2rem 1.5rem;
+            }
+
+            .error-title {
+                font-size: 1.5rem;
+            }
+
+            .error-icon {
+                font-size: 3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="error-card">
+            <div class="error-icon">❌</div>
+            <h1 class="error-title">Formulaire non trouvé</h1>
+            <div class="error-message">
+                <p>Le lien que vous avez suivi ne correspond à aucun formulaire actif.</p>
+                <p>Il est possible que le formulaire ait été supprimé ou que le lien soit incorrect.</p>
+            </div>
+            <div class="error-code">Erreur 404 - Ressource non trouvée</div>
+        </div>
+
+        <div class="footer">
+            <p>Si vous pensez qu'il s'agit d'une erreur, contactez l'administrateur.</p>
+            <a href="https://formcraft.example.com" class="powered-by" target="_blank">
+                <span>⚡</span>
+                <span>Powered by FormCraft</span>
+            </a>
+        </div>
+    </div>
+</body>
+</html> 

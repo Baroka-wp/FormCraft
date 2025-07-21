@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FormCraft - Générateur de formulaires</title>
+    <title>FormCraft - Dashboard</title>
     <style>
         /* File: index.html */
-        /* Purpose: Interface style japonais pour la gestion des formulaires */
-        /* Design: Couleurs japonaises douces, responsive optimisé */
+        /* Purpose: Dashboard principal pour la gestion des formulaires */
+        /* Design: Style japonais avec sidebar fixe */
         
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
         
@@ -52,10 +52,11 @@
 
         .container {
             display: grid;
-            grid-template-columns: 280px 1fr 1fr;
+            grid-template-columns: 1fr;
             min-height: 100vh;
             gap: 0;
             position: relative;
+            margin-left: 280px;
         }
 
         /* === SIDEBAR === */
@@ -65,10 +66,15 @@
             border-right: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
-            position: relative;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: 280px;
             overflow-y: auto;
             scrollbar-width: thin;
             scrollbar-color: var(--accent-primary) transparent;
+            z-index: 1000;
         }
 
         .sidebar::-webkit-scrollbar {
@@ -191,26 +197,26 @@
         }
 
         .delete-btn {
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            cursor: pointer;
-            padding: 0.5rem;
+            background: rgba(211, 47, 47, 0.1);
+            color: var(--danger-color);
+            border: 1px solid rgba(211, 47, 47, 0.2);
             border-radius: 0.375rem;
-            font-size: 0.875rem;
+            padding: 0.375rem;
+            cursor: pointer;
             transition: all 0.3s ease;
+            font-size: 0.75rem;
             opacity: 0;
-            transform: translateX(10px);
+            transform: translateX(-10px);
         }
 
-        .menu-item:hover .delete-btn {
+        .menu-item-content:hover .delete-btn {
             opacity: 1;
             transform: translateX(0);
         }
 
         .delete-btn:hover {
-            background: rgba(211, 47, 47, 0.1);
-            color: var(--danger-color);
+            background: rgba(211, 47, 47, 0.2);
+            transform: scale(1.1);
         }
 
         .add-form-btn {
@@ -234,18 +240,115 @@
             box-shadow: var(--shadow-glow);
         }
 
-        .stats {
-            margin-top: auto;
-            padding: 1.5rem 1rem;
-            border-top: 1px solid var(--border-color);
+        /* === CONTENU PRINCIPAL === */
+        .main-content {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            padding: 2rem;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--accent-primary) transparent;
+        }
+
+        .main-content::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .main-content::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .main-content::-webkit-scrollbar-thumb {
+            background: var(--accent-primary);
+            border-radius: 2px;
+        }
+
+        .welcome-section {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .welcome-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .section-title {
+            font-size: 3rem;
+            font-weight: 700;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+
+        .welcome-description {
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* Flash messages */
+        .flash-messages {
+            margin-bottom: 2rem;
+        }
+
+        .flash-message {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 1.5rem;
+            margin-bottom: 1rem;
+            border-radius: 0.75rem;
+            border-left: 4px solid;
+            animation: slideIn 0.3s ease;
+        }
+
+        .flash-success {
+            background: rgba(74, 124, 89, 0.1);
+            border-color: var(--success-color);
+            color: var(--success-color);
+        }
+
+        .flash-error {
+            background: rgba(211, 47, 47, 0.1);
+            border-color: var(--danger-color);
+            color: var(--danger-color);
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .flash-message button {
+            background: none;
+            border: none;
+            color: inherit;
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+
+        /* Stats grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
         }
 
         .stats-card {
-            background: var(--bg-secondary);
+            background: var(--bg-card);
             border: 1px solid var(--border-color);
-            border-radius: 0.75rem;
-            padding: 1rem;
-            text-align: center;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
         }
@@ -256,112 +359,66 @@
             top: 0;
             left: 0;
             right: 0;
-            height: 2px;
+            height: 3px;
             background: var(--accent-gradient);
+        }
+
+        .stats-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-card);
+        }
+
+        .stats-icon {
+            font-size: 2.5rem;
+            background: var(--sakura-light);
+            border-radius: 0.75rem;
+            padding: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .stats-number {
             font-size: 2rem;
             font-weight: 700;
             color: var(--accent-primary);
-            font-family: 'JetBrains Mono', monospace;
+            margin-bottom: 0.25rem;
         }
 
         .stats-label {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            margin-top: 0.25rem;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        /* === SECTION PRINCIPALE === */
-        .main-section {
-            background: var(--bg-card);
-            backdrop-filter: blur(20px);
-            border-right: 1px solid var(--border-color);
-            padding: 2rem;
-            overflow-y: auto;
-            scrollbar-width: thin;
-            scrollbar-color: var(--accent-primary) transparent;
-        }
-
-        .main-section::-webkit-scrollbar {
-            width: 4px;
-        }
-
-        .main-section::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        .main-section::-webkit-scrollbar-thumb {
-            background: var(--accent-primary);
-            border-radius: 2px;
-        }
-
-        .section-header {
-            margin-bottom: 2rem;
-        }
-
-        .section-title {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 0.5rem;
-            background: var(--accent-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .section-subtitle {
             color: var(--text-secondary);
-            font-size: 1rem;
-        }
-
-        /* Messages flash */
-        .flash-messages {
-            margin-bottom: 2rem;
-        }
-
-        .flash-message {
-            padding: 1rem 1.25rem;
-            border-radius: 0.75rem;
-            margin-bottom: 0.75rem;
+            font-size: 0.9rem;
             font-weight: 500;
-            border-left: 4px solid;
-            backdrop-filter: blur(10px);
-            animation: slideInDown 0.3s ease;
         }
 
-        @keyframes slideInDown {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
+        /* Forms grid */
+        .forms-grid {
+            margin-top: 2rem;
         }
 
-        .flash-message.success {
-            background: var(--sakura-light);
-            color: var(--success-color);
-            border-left-color: var(--success-color);
+        .forms-grid h3 {
+            color: var(--accent-primary);
+            margin-bottom: 1.5rem;
+            font-size: 1.5rem;
         }
 
-        .flash-message.error {
-            background: rgba(211, 47, 47, 0.1);
-            color: var(--danger-color);
-            border-left-color: var(--danger-color);
+        .forms-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
         }
 
-        /* Formulaire principal */
-        .form-card {
-            background: var(--bg-secondary);
+        .form-card-item {
+            background: var(--bg-card);
             border: 1px solid var(--border-color);
             border-radius: 1rem;
-            padding: 2rem;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
         }
 
-        .form-card::before {
+        .form-card-item::before {
             content: '';
             position: absolute;
             top: 0;
@@ -371,202 +428,140 @@
             background: var(--accent-gradient);
         }
 
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .form-group label {
-            display: block;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 0.5rem;
-            font-size: 0.875rem;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 0.75rem 1rem;
-            background: white;
-            border: 1px solid var(--border-color);
-            border-radius: 0.5rem;
-            color: var(--text-primary);
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            font-family: inherit;
-        }
-
-        .form-group input:focus {
-            outline: none;
-            border-color: var(--accent-primary);
-            box-shadow: 0 0 0 3px rgba(74, 124, 89, 0.1);
-            background: var(--cream);
-        }
-
-        .form-group input::placeholder {
-            color: var(--text-muted);
-        }
-
-        .submit-btn {
-            width: 100%;
-            padding: 1rem;
-            background: var(--accent-gradient);
-            color: white;
-            border: none;
-            border-radius: 0.75rem;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .submit-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-glow);
-        }
-
-        .submit-btn:active {
-            transform: translateY(0);
-        }
-
-        /* === SECTION DONNÉES === */
-        .data-section {
-            background: var(--bg-card);
-            backdrop-filter: blur(20px);
-            padding: 2rem;
-            overflow-y: auto;
-            scrollbar-width: thin;
-            scrollbar-color: var(--accent-primary) transparent;
-        }
-
-        .data-section::-webkit-scrollbar {
-            width: 4px;
-        }
-
-        .data-section::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        .data-section::-webkit-scrollbar-thumb {
-            background: var(--accent-primary);
-            border-radius: 2px;
-        }
-
-        .data-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .data-count {
-            font-size: 0.875rem;
-            color: var(--text-muted);
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        .table-container {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 1rem;
-            overflow: hidden;
+        .form-card-item:hover {
+            transform: translateY(-4px);
             box-shadow: var(--shadow-card);
         }
 
-        /* Table responsive améliorée */
-        .table-wrapper {
-            overflow-x: auto;
-            scrollbar-width: thin;
-            scrollbar-color: var(--accent-primary) transparent;
+        .form-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
         }
 
-        .table-wrapper::-webkit-scrollbar {
-            height: 4px;
-        }
-
-        .table-wrapper::-webkit-scrollbar-track {
-            background: transparent;
-        }
-
-        .table-wrapper::-webkit-scrollbar-thumb {
-            background: var(--accent-primary);
-            border-radius: 2px;
-        }
-
-        .users-table {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 600px; /* Table minimum width pour le scroll horizontal */
-        }
-
-        .users-table th {
-            background: var(--bg-primary);
-            padding: 1rem 0.75rem;
-            text-align: left;
+        .form-card-header h4 {
+            color: var(--accent-primary);
+            font-size: 1.2rem;
             font-weight: 600;
-            color: var(--text-primary);
-            border-bottom: 1px solid var(--border-color);
-            font-size: 0.875rem;
-            font-family: 'JetBrains Mono', monospace;
-            white-space: nowrap;
+            margin: 0;
         }
 
-        .users-table td {
-            padding: 1rem 0.75rem;
-            border-bottom: 1px solid var(--border-color);
-            color: var(--text-secondary);
-            font-size: 0.875rem;
-            white-space: nowrap;
+        .form-actions {
+            display: flex;
+            gap: 0.5rem;
         }
 
-        .users-table tbody tr {
+        .action-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.5rem;
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
             transition: all 0.3s ease;
         }
 
-        .users-table tbody tr:hover {
-            background: var(--sakura-light);
-            transform: scale(1.01);
+        .action-btn.primary {
+            background: rgba(74, 124, 89, 0.1);
+            color: var(--accent-primary);
+            border: 1px solid rgba(74, 124, 89, 0.2);
         }
 
-        .user-avatar {
-            width: 2rem;
-            height: 2rem;
-            background: var(--accent-gradient);
-            border-radius: 50%;
+        .action-btn.primary:hover {
+            background: rgba(74, 124, 89, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .action-btn.danger {
+            background: rgba(211, 47, 47, 0.1);
+            color: var(--danger-color);
+            border: 1px solid rgba(211, 47, 47, 0.2);
+        }
+
+        .action-btn.danger:hover {
+            background: rgba(211, 47, 47, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .form-card-description {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+
+        .form-card-meta {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        .form-meta-item {
             display: flex;
             align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 700;
-            font-size: 0.75rem;
-            font-family: 'JetBrains Mono', monospace;
+            gap: 0.5rem;
         }
 
+        /* No data state */
         .no-data {
             text-align: center;
             padding: 4rem 2rem;
-            color: var(--text-muted);
-            font-style: italic;
+            color: var(--text-secondary);
         }
 
-        /* Responsive Design */
-        @media (max-width: 1200px) {
-            .container {
-                grid-template-columns: 250px 1fr 1fr;
-            }
+        .no-data-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.7;
         }
 
+        .no-data h3 {
+            font-size: 1.5rem;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .no-data p {
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .create-first-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--accent-gradient);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 0.75rem;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .create-first-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        /* Responsive */
         @media (max-width: 968px) {
             .container {
                 grid-template-columns: 1fr;
-                grid-template-rows: auto auto 1fr;
+                grid-template-rows: auto 1fr;
                 min-height: 100vh;
+                margin-left: 0;
             }
 
             .sidebar {
+                position: relative;
+                width: 100%;
+                height: auto;
                 border-right: none;
                 border-bottom: 1px solid var(--border-color);
             }
@@ -590,86 +585,45 @@
                 display: none;
             }
 
-            .menu-item {
-                margin-bottom: 0;
-            }
-
-            .stats {
-                margin-top: 0;
-                padding: 1rem;
-                border-top: none;
-            }
-
-            .main-section,
-            .data-section {
+            .main-content {
                 padding: 1.5rem;
             }
 
             .section-title {
-                font-size: 1.5rem;
+                font-size: 2rem;
             }
 
-            .form-card {
-                padding: 1.5rem;
+            .stats-grid {
+                grid-template-columns: 1fr;
             }
 
-            /* Table responsive mobile */
-            .users-table {
-                min-width: 500px; /* Reduced minimum width for mobile */
-            }
-
-            .users-table th,
-            .users-table td {
-                padding: 0.75rem 0.5rem;
-                font-size: 0.75rem;
+            .forms-container {
+                grid-template-columns: 1fr;
             }
         }
 
         @media (max-width: 640px) {
-            .main-section,
-            .data-section {
-                padding: 1rem;
-            }
-
-            .form-card {
+            .main-content {
                 padding: 1rem;
             }
 
             .section-title {
-                font-size: 1.25rem;
+                font-size: 1.75rem;
             }
 
-            /* Mobile table optimizations */
-            .users-table {
-                min-width: 450px;
+            .welcome-description {
+                font-size: 1rem;
             }
 
-            .users-table th,
-            .users-table td {
-                padding: 0.5rem 0.25rem;
-                font-size: 0.7rem;
+            .form-card-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
             }
 
-            .user-avatar {
-                width: 1.5rem;
-                height: 1.5rem;
-                font-size: 0.6rem;
-            }
-
-            /* Better mobile scroll indicator */
-            .table-wrapper {
-                position: relative;
-            }
-
-            .table-wrapper::after {
-                content: '← Glissez pour voir plus →';
-                position: absolute;
-                bottom: -1.5rem;
-                left: 50%;
-                transform: translateX(-50%);
-                font-size: 0.7rem;
-                color: var(--text-muted);
-                font-style: italic;
+            .form-actions {
+                width: 100%;
+                justify-content: flex-end;
             }
         }
     </style>
@@ -691,16 +645,8 @@
                         <li class="menu-item">
                             <div class="menu-item-content">
                                 <a href="/" class="menu-link active">
-                                    <span class="menu-icon">👥</span>
-                                    <span>Utilisateurs</span>
-                                </a>
-                            </div>
-                        </li>
-                        <li class="menu-item">
-                            <div class="menu-item-content">
-                                <a href="/api/docs" class="menu-link" target="_blank">
-                                    <span class="menu-icon">🔗</span>
-                                    <span>API REST</span>
+                                    <span class="menu-icon">🏠</span>
+                                    <span>Dashboard</span>
                                 </a>
                             </div>
                         </li>
@@ -718,8 +664,9 @@
                                             <span class="menu-icon">📋</span>
                                             <span>{{ form.title }}</span>
                                         </a>
-                                        <button onclick="deleteForm('{{ form.name }}', '{{ form.title }}')" 
-                                                class="delete-btn" title="Supprimer">🗑️</button>
+                                        <button onclick="deleteForm('{{ form.name }}', '{{ form.title }}')" class="delete-btn" title="Supprimer">
+                                            🗑️
+                                        </button>
                                     </div>
                                 </li>
                             {% endfor %}
@@ -732,101 +679,103 @@
                     <span>Nouveau Formulaire</span>
                 </a>
             </div>
-
-            <div class="stats">
-                <div class="stats-card">
-                    <div class="stats-number">{{ users|length }}</div>
-                    <div class="stats-label">Utilisateurs</div>
-                </div>
-            </div>
         </div>
 
-        <!-- === SECTION PRINCIPALE === -->
-        <div class="main-section">
-            <div class="section-header">
-                <h2 class="section-title">Gestion des Utilisateurs</h2>
-                <p class="section-subtitle">Ajouter et gérer les utilisateurs du système principal</p>
+        <!-- === CONTENU PRINCIPAL === -->
+        <div class="main-content">
+            <div class="welcome-section">
+                <div class="welcome-header">
+                    <h1 class="section-title">📋 Dashboard FormCraft</h1>
+                    <div class="welcome-description">
+                        Gérez vos formulaires dynamiques et consultez leurs données en temps réel.
+                    </div>
+                </div>
+
+                {% if messages %}
+                    <div class="flash-messages">
+                        {% for category, message in messages %}
+                            <div class="flash-message flash-{{ category }}">
+                                <span>{{ message }}</span>
+                                <button onclick="this.parentElement.remove()">✕</button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <div class="stats-grid">
+                    <div class="stats-card">
+                        <div class="stats-icon">📝</div>
+                        <div class="stats-content">
+                            <div class="stats-number">{{ forms|length }}</div>
+                            <div class="stats-label">Formulaire{% if forms|length != 1 %}s{% endif %} créé{% if forms|length != 1 %}s{% endif %}</div>
+                        </div>
+                    </div>
+
+                    <div class="stats-card">
+                        <div class="stats-icon">🎯</div>
+                        <div class="stats-content">
+                            <div class="stats-number">Actif</div>
+                            <div class="stats-label">Système</div>
+                        </div>
+                    </div>
+
+                    <div class="stats-card">
+                        <div class="stats-icon">🔗</div>
+                        <div class="stats-content">
+                            <div class="stats-number">API</div>
+                            <div class="stats-label">REST disponible</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="forms-grid">
+                    {% if forms %}
+                        <h3>Vos formulaires</h3>
+                        <div class="forms-container">
+                            {% for form in forms %}
+                                <div class="form-card-item">
+                                    <div class="form-card-header">
+                                        <h4>{{ form.title }}</h4>
+                                        <div class="form-actions">
+                                            <a href="/form/{{ form.name }}" class="action-btn primary">
+                                                <span>👁️</span>
+                                                <span>Voir</span>
+                                            </a>
+                                            <button onclick="deleteForm('{{ form.name }}', '{{ form.title }}')" class="action-btn danger">
+                                                <span>🗑️</span>
+                                                <span>Supprimer</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    {% if form.description %}
+                                        <p class="form-card-description">{{ form.description }}</p>
+                                    {% endif %}
+                                    <div class="form-card-meta">
+                                        <span class="form-meta-item">
+                                            <span>📅</span>
+                                            <span>{{ form.created_at[:10] }}</span>
+                                        </span>
+                                        <span class="form-meta-item">
+                                            <span>🔗</span>
+                                            <span>{{ form.name }}</span>
+                                        </span>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="no-data">
+                            <div class="no-data-icon">📝</div>
+                            <h3>Aucun formulaire créé</h3>
+                            <p>Commencez par créer votre premier formulaire dynamique !</p>
+                            <a href="/create-form" class="create-first-btn">
+                                <span>➕</span>
+                                <span>Créer mon premier formulaire</span>
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
             </div>
-
-            <!-- Messages flash -->
-            {% if get_flashed_messages() %}
-                <div class="flash-messages">
-                    {% for category, message in get_flashed_messages(with_categories=true) %}
-                        <div class="flash-message {{ category }}">{{ message }}</div>
-                    {% endfor %}
-                </div>
-            {% endif %}
-
-            <div class="form-card">
-                <form method="POST" action="/">
-                    <div class="form-group">
-                        <label for="nom">Nom de famille</label>
-                        <input type="text" id="nom" name="nom" placeholder="Dupont" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="prenom">Prénom</label>
-                        <input type="text" id="prenom" name="prenom" placeholder="Jean" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="age">Âge</label>
-                        <input type="number" id="age" name="age" placeholder="25" min="0" max="150" required>
-                    </div>
-
-                    <button type="submit" class="submit-btn">
-                        ➕ Ajouter l'utilisateur
-                    </button>
-                </form>
-            </div>
-        </div>
-
-        <!-- === SECTION DONNÉES === -->
-        <div class="data-section">
-            <div class="data-header">
-                <h2 class="section-title" style="margin: 0;">Liste des utilisateurs</h2>
-                <div class="data-count">
-                    {{ users|length }} utilisateur{% if users|length != 1 %}s{% endif %}
-                </div>
-            </div>
-
-            {% if users %}
-                <div class="table-container">
-                    <div class="table-wrapper">
-                        <table class="users-table">
-                            <thead>
-                                <tr>
-                                    <th>Avatar</th>
-                                    <th>Nom</th>
-                                    <th>Prénom</th>
-                                    <th>Âge</th>
-                                    <th>Date</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for user in users %}
-                                    <tr>
-                                        <td>
-                                            <div class="user-avatar">
-                                                {{ user.prenom[0]|upper }}{{ user.nom[0]|upper }}
-                                            </div>
-                                        </td>
-                                        <td><strong>{{ user.nom }}</strong></td>
-                                        <td>{{ user.prenom }}</td>
-                                        <td>{{ user.age }} ans</td>
-                                        <td>{{ user.created_at[:10] }}</td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            {% else %}
-                <div class="no-data">
-                    Aucun utilisateur enregistré.<br>
-                    Utilisez le formulaire pour ajouter le premier utilisateur.
-                </div>
-            {% endif %}
         </div>
     </div>
 
@@ -861,7 +810,7 @@
 
         // Animations au chargement
         document.addEventListener('DOMContentLoaded', function() {
-            const elements = document.querySelectorAll('.form-card, .table-container, .stats-card');
+            const elements = document.querySelectorAll('.stats-card, .form-card-item');
             elements.forEach((element, index) => {
                 element.style.opacity = '0';
                 element.style.transform = 'translateY(20px)';

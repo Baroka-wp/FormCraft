@@ -51,11 +51,9 @@
         }
 
         .container {
-            display: grid;
-            grid-template-columns: 280px 1fr;
             min-height: 100vh;
-            gap: 0;
             position: relative;
+            margin-left: 280px;
         }
 
         /* === SIDEBAR === */
@@ -65,10 +63,15 @@
             border-right: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
-            position: relative;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: 280px;
             overflow-y: auto;
             scrollbar-width: thin;
             scrollbar-color: var(--accent-primary) transparent;
+            z-index: 1000;
         }
 
         .sidebar::-webkit-scrollbar {
@@ -490,11 +493,13 @@
         /* Responsive */
         @media (max-width: 968px) {
             .container {
-                grid-template-columns: 1fr;
-                grid-template-rows: auto 1fr;
+                margin-left: 0;
             }
 
             .sidebar {
+                position: relative;
+                width: 100%;
+                height: auto;
                 border-right: none;
                 border-bottom: 1px solid var(--border-color);
             }
@@ -574,14 +579,7 @@
                                 </a>
                             </div>
                         </li>
-                        <li class="menu-item">
-                            <div class="menu-item-content">
-                                <a href="/api/docs" class="menu-link" target="_blank">
-                                    <span class="menu-icon">🔗</span>
-                                    <span>API REST</span>
-                                </a>
-                            </div>
-                        </li>
+
                     </ul>
                 </div>
                 
