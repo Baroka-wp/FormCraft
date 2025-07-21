@@ -3,8 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Créer un Formulaire</title>
+    <title>Créer un formulaire - FormCraft</title>
     <style>
+        /* File: create_form.html */
+        /* Purpose: Interface style japonais pour création de formulaires */
+        /* Design: Couleurs japonaises douces, cohérent avec l'app */
+        
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+        
+        :root {
+            /* Style japonais - couleurs douces et naturelles */
+            --bg-primary: #faf9f7;
+            --bg-secondary: #f5f3f0;
+            --bg-card: rgba(255, 255, 255, 0.8);
+            --accent-primary: #2d5016;        /* Vert matcha foncé */
+            --accent-secondary: #e91e63;      /* Rose sakura */
+            --accent-gradient: linear-gradient(135deg, #4a7c59, #e91e63);
+            --text-primary: #2c2c2c;
+            --text-secondary: #666666;
+            --text-muted: #999999;
+            --border-color: rgba(45, 80, 22, 0.1);
+            --success-color: #4a7c59;         /* Vert bambou */
+            --danger-color: #d32f2f;
+            --warning-color: #ff9800;
+            --shadow-glow: 0 0 20px rgba(74, 124, 89, 0.2);
+            --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.1);
+            --matcha-light: #8bc34a;          /* Vert matcha clair */
+            --sakura-light: #fce4ec;          /* Rose sakura clair */
+            --cream: #fff8e1;                 /* Crème */
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -12,97 +40,135 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            color: #212529;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(74, 124, 89, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(233, 30, 99, 0.05) 0%, transparent 50%);
+            color: var(--text-primary);
             min-height: 100vh;
-            padding: 20px;
+            padding: 2rem;
         }
 
         .container {
-            max-width: 600px;
+            max-width: 800px;
             margin: 0 auto;
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(10px);
-            border-radius: 16px;
-            padding: 40px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         }
 
         .header {
             text-align: center;
-            margin-bottom: 40px;
+            margin-bottom: 3rem;
         }
 
-        .header h1 {
+        .logo {
+            font-family: 'JetBrains Mono', monospace;
             font-size: 2rem;
             font-weight: 700;
-            color: #007aff;
-            margin-bottom: 10px;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+            animation: glow 3s ease-in-out infinite alternate;
         }
 
-        .header p {
-            color: #6c757d;
+        @keyframes glow {
+            from { filter: drop-shadow(0 0 5px rgba(74, 124, 89, 0.3)); }
+            to { filter: drop-shadow(0 0 15px rgba(233, 30, 99, 0.3)); }
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
             font-size: 1.1rem;
+            margin-bottom: 1rem;
         }
 
         .back-link {
-            display: inline-block;
-            margin-bottom: 30px;
-            color: #007aff;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--accent-primary);
             text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            background: var(--sakura-light);
+            transition: all 0.3s ease;
             font-weight: 500;
         }
 
         .back-link:hover {
-            text-decoration: underline;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-glow);
         }
 
-        /* Messages flash */
-        .flash-messages {
-            margin-bottom: 25px;
+        .form-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 1rem;
+            padding: 2.5rem;
+            box-shadow: var(--shadow-card);
+            position: relative;
+            overflow: hidden;
         }
 
-        .flash-message {
-            padding: 12px 16px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            font-size: 0.9rem;
+        .form-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--accent-gradient);
         }
 
-        .flash-message.success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+        .form-section {
+            margin-bottom: 2.5rem;
         }
 
-        .flash-message.error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid var(--accent-primary);
+            position: relative;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 50px;
+            height: 2px;
+            background: var(--accent-secondary);
         }
 
         .form-group {
-            margin-bottom: 25px;
+            margin-bottom: 1.5rem;
         }
 
         .form-group label {
             display: block;
             font-weight: 600;
-            color: #495057;
-            margin-bottom: 8px;
-            font-size: 0.95rem;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
         }
 
         .form-group input,
-        .form-group textarea {
+        .form-group textarea,
+        .form-group select {
             width: 100%;
-            padding: 14px 16px;
-            border: 1px solid #ced4da;
-            border-radius: 8px;
-            background: #fff;
+            padding: 0.75rem 1rem;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            color: var(--text-primary);
             font-size: 1rem;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
             font-family: inherit;
         }
 
@@ -112,173 +178,185 @@
         }
 
         .form-group input:focus,
-        .form-group textarea:focus {
+        .form-group textarea:focus,
+        .form-group select:focus {
             outline: none;
-            border-color: #007aff;
-            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(74, 124, 89, 0.1);
+            background: var(--cream);
         }
 
-        .form-note {
-            font-size: 0.85rem;
-            color: #6c757d;
-            margin-top: 5px;
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: var(--text-muted);
         }
 
-        .button-group {
-            display: flex;
-            gap: 15px;
-            margin-top: 40px;
-        }
-
-        .btn {
-            flex: 1;
-            padding: 14px;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-decoration: none;
-            text-align: center;
-            display: inline-block;
-        }
-
-        .btn-primary {
-            background: #007aff;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: #0056b3;
-            transform: translateY(-1px);
-        }
-
-        .btn-secondary {
-            background: #6c757d;
-            color: white;
-        }
-
-        .btn-secondary:hover {
-            background: #545b62;
-            transform: translateY(-1px);
-        }
-
-        /* Section des champs */
-        .fields-section {
-            margin-top: 40px;
-            padding-top: 30px;
-            border-top: 2px solid #e9ecef;
+        /* Dynamic fields */
+        .fields-container {
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            background: var(--bg-secondary);
         }
 
         .field-item {
-            background: #f8f9fa;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-            border: 1px solid #dee2e6;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            position: relative;
+            transition: all 0.3s ease;
         }
 
-        .field-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .field-number {
-            font-weight: 600;
-            color: #007aff;
-            font-size: 0.9rem;
-        }
-
-        .remove-field {
-            background: #dc3545;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 24px;
-            height: 24px;
-            cursor: pointer;
-            font-size: 0.8rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .field-content {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
+        .field-item:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-card);
         }
 
         .field-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 120px 80px 40px;
+            gap: 1rem;
+            align-items: end;
+        }
+
+        .required-checkbox {
             display: flex;
-            gap: 15px;
+            align-items: center;
+            gap: 0.5rem;
+            padding-top: 1.75rem;
         }
 
-        .field-col {
-            flex: 1;
+        .required-checkbox input[type="checkbox"] {
+            width: auto;
+            margin: 0;
         }
 
-        .field-col label {
-            display: block;
-            font-weight: 500;
-            color: #495057;
-            margin-bottom: 5px;
-            font-size: 0.9rem;
-        }
-
-        .field-col input,
-        .field-col select {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid #ced4da;
-            border-radius: 6px;
-            background: white;
-            font-size: 0.95rem;
-        }
-
-        .btn-add-field {
-            background: rgba(0, 122, 255, 0.1);
-            color: #007aff;
-            border: 2px dashed #007aff;
-            border-radius: 8px;
-            padding: 12px 20px;
+        .remove-field-btn {
+            background: var(--danger-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 2rem;
+            height: 2rem;
             cursor: pointer;
-            font-weight: 500;
-            transition: all 0.2s ease;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 1.75rem;
+        }
+
+        .remove-field-btn:hover {
+            background: #b71c1c;
+            transform: scale(1.1);
+        }
+
+        .add-field-btn {
+            background: var(--accent-primary);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .add-field-btn:hover {
+            background: #1b3209;
+            transform: translateY(-2px);
+        }
+
+        .submit-btn {
             width: 100%;
+            padding: 1rem 2rem;
+            background: var(--accent-gradient);
+            color: white;
+            border: none;
+            border-radius: 0.75rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 2rem;
         }
 
-        .btn-add-field:hover {
-            background: rgba(0, 122, 255, 0.15);
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-glow);
         }
 
+        /* Flash messages */
+        .flash-messages {
+            margin-bottom: 2rem;
+        }
+
+        .flash-message {
+            padding: 1rem 1.25rem;
+            border-radius: 0.75rem;
+            margin-bottom: 0.75rem;
+            font-weight: 500;
+            border-left: 4px solid;
+            animation: slideInDown 0.3s ease;
+        }
+
+        @keyframes slideInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .flash-message.success {
+            background: var(--sakura-light);
+            color: var(--success-color);
+            border-left-color: var(--success-color);
+        }
+
+        .flash-message.error {
+            background: rgba(211, 47, 47, 0.1);
+            color: var(--danger-color);
+            border-left-color: var(--danger-color);
+        }
+
+        /* Responsive */
         @media (max-width: 768px) {
-            .container {
-                padding: 25px;
-                margin: 10px;
+            body {
+                padding: 1rem;
             }
 
-            .button-group {
-                flex-direction: column;
+            .form-card {
+                padding: 1.5rem;
             }
 
             .field-row {
-                flex-direction: column;
-                gap: 10px;
+                grid-template-columns: 1fr;
+                gap: 0.75rem;
+            }
+
+            .required-checkbox,
+            .remove-field-btn {
+                margin-top: 0;
+                padding-top: 0;
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <a href="/" class="back-link">← Retour à l'accueil</a>
-        
         <div class="header">
-            <h1>🗂️ Créer un Formulaire</h1>
-            <p>Définissez un nouveau formulaire personnalisé</p>
+            <h1 class="logo">FormCraft</h1>
+            <p class="subtitle">Créateur de formulaires dynamiques</p>
+            <a href="/" class="back-link">
+                <span>←</span>
+                <span>Retour à l'accueil</span>
+            </a>
         </div>
 
         <!-- Messages flash -->
@@ -290,209 +368,173 @@
             </div>
         {% endif %}
 
-        <form method="POST" action="/create-form">
-            <div class="form-group">
-                <label for="form_name">Nom du formulaire</label>
-                <input type="text" id="form_name" name="form_name" 
-                       placeholder="contact" 
-                       pattern="[a-z0-9_]+" 
-                       required>
-                <div class="form-note">
-                    Utilisez uniquement des lettres minuscules, chiffres et tirets bas. 
-                    Sera utilisé comme identifiant unique.
-                </div>
-            </div>
+        <div class="form-card">
+            <form method="POST" action="/create-form">
+                <div class="form-section">
+                    <h2 class="section-title">📋 Informations du formulaire</h2>
+                    
+                    <div class="form-group">
+                        <label for="form_name">Nom du formulaire (identifiant unique)</label>
+                        <input type="text" id="form_name" name="form_name" 
+                               placeholder="ex: contact, inscription, enquete" 
+                               pattern="[a-zA-Z0-9_-]+" 
+                               title="Seules les lettres, chiffres, tirets et underscores sont autorisés"
+                               required>
+                    </div>
 
-            <div class="form-group">
-                <label for="form_title">Titre du formulaire</label>
-                <input type="text" id="form_title" name="form_title" 
-                       placeholder="Formulaire de Contact" 
-                       required>
-                <div class="form-note">
-                    Nom affiché dans l'interface utilisateur.
-                </div>
-            </div>
+                    <div class="form-group">
+                        <label for="form_title">Titre du formulaire</label>
+                        <input type="text" id="form_title" name="form_title" 
+                               placeholder="ex: Formulaire de contact" 
+                               required>
+                    </div>
 
-            <div class="form-group">
-                <label for="form_description">Description (optionnelle)</label>
-                <textarea id="form_description" name="form_description" 
-                          placeholder="Description de ce formulaire..."></textarea>
-                <div class="form-note">
-                    Décrivez brièvement l'objectif de ce formulaire.
-                </div>
-            </div>
-
-            <!-- Section des champs -->
-            <div class="fields-section">
-                <h3 style="color: #007aff; margin-bottom: 20px; font-size: 1.2rem;">⚙️ Configuration des champs</h3>
-                
-                <div id="fields-container">
-                    <!-- Champ par défaut -->
-                    <div class="field-item" data-field-index="0">
-                        <div class="field-header">
-                            <span class="field-number">Champ 1</span>
-                            <button type="button" class="remove-field" onclick="removeField(0)" style="display: none;">✕</button>
-                        </div>
-                        <div class="field-content">
-                            <div class="field-row">
-                                <div class="field-col">
-                                    <label>Nom du champ</label>
-                                    <input type="text" name="field_name[]" placeholder="nom" pattern="[a-z0-9_]+" required>
-                                </div>
-                                <div class="field-col">
-                                    <label>Libellé</label>
-                                    <input type="text" name="field_label[]" placeholder="Nom complet" required>
-                                </div>
-                            </div>
-                            <div class="field-row">
-                                <div class="field-col">
-                                    <label>Type</label>
-                                    <select name="field_type[]" required>
-                                        <option value="text">Texte</option>
-                                        <option value="email">Email</option>
-                                        <option value="number">Nombre</option>
-                                        <option value="tel">Téléphone</option>
-                                        <option value="date">Date</option>
-                                        <option value="textarea">Texte long</option>
-                                    </select>
-                                </div>
-                                <div class="field-col">
-                                    <label style="display: flex; align-items: center; gap: 8px;">
-                                        <input type="checkbox" name="field_required[]" value="0" checked>
-                                        Champ obligatoire
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
+                    <div class="form-group">
+                        <label for="form_description">Description (optionnelle)</label>
+                        <textarea id="form_description" name="form_description" 
+                                  placeholder="Décrivez brièvement l'objectif de ce formulaire"></textarea>
                     </div>
                 </div>
 
-                <button type="button" id="add-field" class="btn-add-field">
-                    ➕ Ajouter un champ
-                </button>
-            </div>
+                <div class="form-section">
+                    <h2 class="section-title">🔧 Configuration des champs</h2>
+                    
+                    <div class="fields-container">
+                        <div id="fields-list">
+                            <!-- Premier champ par défaut -->
+                            <div class="field-item">
+                                <div class="field-row">
+                                    <div class="form-group">
+                                        <label>Nom du champ</label>
+                                        <input type="text" name="field_name[]" 
+                                               placeholder="ex: nom, email, message" 
+                                               pattern="[a-zA-Z0-9_]+" 
+                                               title="Seules les lettres, chiffres et underscores"
+                                               required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Libellé affiché</label>
+                                        <input type="text" name="field_label[]" 
+                                               placeholder="ex: Votre nom" 
+                                               required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Type</label>
+                                        <select name="field_type[]" required>
+                                            <option value="text">Texte</option>
+                                            <option value="email">Email</option>
+                                            <option value="number">Nombre</option>
+                                            <option value="date">Date</option>
+                                            <option value="textarea">Texte long</option>
+                                        </select>
+                                    </div>
+                                    <div class="required-checkbox">
+                                        <input type="checkbox" name="field_required[]" value="1">
+                                        <label>Requis</label>
+                                    </div>
+                                    <button type="button" class="remove-field-btn" onclick="removeField(this)">✕</button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button type="button" class="add-field-btn" onclick="addField()">
+                            <span>➕</span>
+                            <span>Ajouter un champ</span>
+                        </button>
+                    </div>
+                </div>
 
-            <div class="button-group">
-                <a href="/" class="btn btn-secondary">Annuler</a>
-                <button type="submit" class="btn btn-primary">
-                    ✨ Créer le Formulaire
+                <button type="submit" class="submit-btn">
+                    🚀 Créer le formulaire
                 </button>
-            </div>
-        </form>
+            </form>
+        </div>
     </div>
 
     <script>
-        let fieldCounter = 1;
-
-        // Convertir automatiquement le titre en nom
-        document.getElementById('form_title').addEventListener('input', function() {
-            const title = this.value;
-            const name = title.toLowerCase()
-                            .replace(/[^a-z0-9\s]/g, '')
-                            .replace(/\s+/g, '_')
-                            .substring(0, 50);
-            document.getElementById('form_name').value = name;
-        });
-
-        // Ajouter un nouveau champ
-        document.getElementById('add-field').addEventListener('click', function() {
-            const container = document.getElementById('fields-container');
-            const fieldIndex = fieldCounter++;
-            
-            const fieldHtml = `
-                <div class="field-item" data-field-index="${fieldIndex}">
-                    <div class="field-header">
-                        <span class="field-number">Champ ${fieldIndex + 1}</span>
-                        <button type="button" class="remove-field" onclick="removeField(${fieldIndex})">✕</button>
+        function addField() {
+            const fieldsList = document.getElementById('fields-list');
+            const fieldItem = document.createElement('div');
+            fieldItem.className = 'field-item';
+            fieldItem.innerHTML = `
+                <div class="field-row">
+                    <div class="form-group">
+                        <label>Nom du champ</label>
+                        <input type="text" name="field_name[]" 
+                               placeholder="ex: nom, email, message" 
+                               pattern="[a-zA-Z0-9_]+" 
+                               title="Seules les lettres, chiffres et underscores"
+                               required>
                     </div>
-                    <div class="field-content">
-                        <div class="field-row">
-                            <div class="field-col">
-                                <label>Nom du champ</label>
-                                <input type="text" name="field_name[]" placeholder="email" pattern="[a-z0-9_]+" required>
-                            </div>
-                            <div class="field-col">
-                                <label>Libellé</label>
-                                <input type="text" name="field_label[]" placeholder="Adresse email" required>
-                            </div>
-                        </div>
-                        <div class="field-row">
-                            <div class="field-col">
-                                <label>Type</label>
-                                <select name="field_type[]" required>
-                                    <option value="text">Texte</option>
-                                    <option value="email">Email</option>
-                                    <option value="number">Nombre</option>
-                                    <option value="tel">Téléphone</option>
-                                    <option value="date">Date</option>
-                                    <option value="textarea">Texte long</option>
-                                </select>
-                            </div>
-                            <div class="field-col">
-                                <label style="display: flex; align-items: center; gap: 8px;">
-                                    <input type="checkbox" name="field_required[]" value="${fieldIndex}" checked>
-                                    Champ obligatoire
-                                </label>
-                            </div>
-                        </div>
+                    <div class="form-group">
+                        <label>Libellé affiché</label>
+                        <input type="text" name="field_label[]" 
+                               placeholder="ex: Votre nom" 
+                               required>
                     </div>
+                    <div class="form-group">
+                        <label>Type</label>
+                        <select name="field_type[]" required>
+                            <option value="text">Texte</option>
+                            <option value="email">Email</option>
+                            <option value="number">Nombre</option>
+                            <option value="date">Date</option>
+                            <option value="textarea">Texte long</option>
+                        </select>
+                    </div>
+                    <div class="required-checkbox">
+                        <input type="checkbox" name="field_required[]" value="1">
+                        <label>Requis</label>
+                    </div>
+                    <button type="button" class="remove-field-btn" onclick="removeField(this)">✕</button>
                 </div>
             `;
             
-            container.insertAdjacentHTML('beforeend', fieldHtml);
-            updateRemoveButtons();
-        });
+            fieldsList.appendChild(fieldItem);
+            
+            // Animation d'entrée
+            fieldItem.style.opacity = '0';
+            fieldItem.style.transform = 'translateY(20px)';
+            setTimeout(() => {
+                fieldItem.style.transition = 'all 0.3s ease';
+                fieldItem.style.opacity = '1';
+                fieldItem.style.transform = 'translateY(0)';
+            }, 10);
+        }
 
-        // Supprimer un champ
-        function removeField(fieldIndex) {
-            const fieldItem = document.querySelector(`[data-field-index="${fieldIndex}"]`);
-            if (fieldItem) {
+        function removeField(button) {
+            const fieldItem = button.closest('.field-item');
+            const fieldsList = document.getElementById('fields-list');
+            
+            // Empêcher la suppression du dernier champ
+            if (fieldsList.children.length <= 1) {
+                alert('⚠️ Vous devez conserver au moins un champ dans le formulaire.');
+                return;
+            }
+            
+            // Animation de sortie
+            fieldItem.style.transition = 'all 0.3s ease';
+            fieldItem.style.opacity = '0';
+            fieldItem.style.transform = 'translateY(-20px)';
+            
+            setTimeout(() => {
                 fieldItem.remove();
-                updateRemoveButtons();
-                updateFieldNumbers();
-            }
+            }, 300);
         }
 
-        // Mettre à jour la visibilité des boutons de suppression
-        function updateRemoveButtons() {
-            const fields = document.querySelectorAll('.field-item');
-            fields.forEach((field, index) => {
-                const removeBtn = field.querySelector('.remove-field');
-                if (removeBtn) {
-                    removeBtn.style.display = fields.length > 1 ? 'flex' : 'none';
-                }
+        // Animation au chargement
+        document.addEventListener('DOMContentLoaded', function() {
+            const elements = document.querySelectorAll('.form-card, .field-item');
+            elements.forEach((element, index) => {
+                element.style.opacity = '0';
+                element.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    element.style.transition = 'all 0.6s ease';
+                    element.style.opacity = '1';
+                    element.style.transform = 'translateY(0)';
+                }, index * 100);
             });
-        }
-
-        // Mettre à jour la numérotation des champs
-        function updateFieldNumbers() {
-            const fields = document.querySelectorAll('.field-item');
-            fields.forEach((field, index) => {
-                const numberSpan = field.querySelector('.field-number');
-                if (numberSpan) {
-                    numberSpan.textContent = `Champ ${index + 1}`;
-                }
-            });
-        }
-
-        // Auto-remplir le nom du champ basé sur le libellé
-        document.addEventListener('input', function(e) {
-            if (e.target.name === 'field_label[]') {
-                const fieldItem = e.target.closest('.field-item');
-                const nameInput = fieldItem.querySelector('input[name="field_name[]"]');
-                if (nameInput && !nameInput.value) {
-                    const label = e.target.value;
-                    const name = label.toLowerCase()
-                                     .replace(/[^a-z0-9\s]/g, '')
-                                     .replace(/\s+/g, '_')
-                                     .substring(0, 30);
-                    nameInput.value = name;
-                }
-            }
         });
-
-        // Initialiser les boutons de suppression
-        updateRemoveButtons();
     </script>
 </body>
 </html> 

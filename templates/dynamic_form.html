@@ -3,12 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ form_info.title }}</title>
+    <title>{{ form_info.title }} - FormCraft</title>
     <style>
         /* File: dynamic_form.html */
-        /* Purpose: Interface 3 colonnes pour formulaires dynamiques */
-        /* Layout: Sidebar | Formulaire dynamique | Tableau données */
+        /* Purpose: Interface style japonais pour formulaires dynamiques */
+        /* Design: Couleurs japonaises douces, responsive optimisé */
         
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+        
+        :root {
+            /* Style japonais - couleurs douces et naturelles */
+            --bg-primary: #faf9f7;
+            --bg-secondary: #f5f3f0;
+            --bg-card: rgba(255, 255, 255, 0.8);
+            --accent-primary: #2d5016;        /* Vert matcha foncé */
+            --accent-secondary: #e91e63;      /* Rose sakura */
+            --accent-gradient: linear-gradient(135deg, #4a7c59, #e91e63);
+            --text-primary: #2c2c2c;
+            --text-secondary: #666666;
+            --text-muted: #999999;
+            --border-color: rgba(45, 80, 22, 0.1);
+            --success-color: #4a7c59;         /* Vert bambou */
+            --danger-color: #d32f2f;
+            --warning-color: #ff9800;
+            --shadow-glow: 0 0 20px rgba(74, 124, 89, 0.2);
+            --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.1);
+            --matcha-light: #8bc34a;          /* Vert matcha clair */
+            --sakura-light: #fce4ec;          /* Rose sakura clair */
+            --cream: #fff8e1;                 /* Crème */
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -16,82 +40,165 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            color: #212529;
-            height: 100vh;
-            overflow: hidden;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(74, 124, 89, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(233, 30, 99, 0.05) 0%, transparent 50%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
         }
 
         .container {
             display: grid;
-            grid-template-columns: 250px 1fr 1fr;
-            height: 100vh;
+            grid-template-columns: 280px 1fr 1fr;
+            min-height: 100vh;
             gap: 0;
+            position: relative;
         }
 
         /* === SIDEBAR === */
         .sidebar {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-right: 1px solid rgba(0, 0, 0, 0.1);
-            padding: 30px 20px;
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
+            position: relative;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--accent-primary) transparent;
+        }
+
+        .sidebar::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: var(--accent-primary);
+            border-radius: 2px;
         }
 
         .logo {
+            padding: 2rem 1.5rem 1rem;
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .logo h1 {
+            font-family: 'JetBrains Mono', monospace;
             font-size: 1.5rem;
             font-weight: 700;
-            color: #007aff;
-            margin-bottom: 40px;
-            text-align: center;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+            animation: glow 3s ease-in-out infinite alternate;
+        }
+
+        .logo p {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        @keyframes glow {
+            from { filter: drop-shadow(0 0 5px rgba(74, 124, 89, 0.3)); }
+            to { filter: drop-shadow(0 0 15px rgba(233, 30, 99, 0.3)); }
         }
 
         .menu {
+            flex: 1;
+            padding: 1.5rem 1rem;
             list-style: none;
         }
 
+        .menu-section {
+            margin-bottom: 2rem;
+        }
+
+        .menu-section-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.75rem;
+            padding: 0 0.75rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
         .menu-item {
-            margin-bottom: 15px;
-        }
-
-        .menu-link {
-            display: block;
-            padding: 12px 16px;
-            color: #6c757d;
-            text-decoration: none;
-            border-radius: 8px;
-            transition: all 0.2s ease;
-            font-weight: 500;
-        }
-
-        .menu-link:hover,
-        .menu-link.active {
-            background: rgba(0, 122, 255, 0.1);
-            color: #007aff;
+            margin-bottom: 0.5rem;
         }
 
         .menu-item-content {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 0.5rem;
+            position: relative;
         }
 
-        .menu-item-content .menu-link {
+        .menu-link {
             flex: 1;
-            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            font-size: 0.875rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .menu-link::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--sakura-light), var(--cream));
+            opacity: 0.7;
+            transition: left 0.3s ease;
+        }
+
+        .menu-link:hover::before,
+        .menu-link.active::before {
+            left: 0;
+        }
+
+        .menu-link:hover,
+        .menu-link.active {
+            color: var(--accent-primary);
+            transform: translateX(4px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .menu-icon {
+            font-size: 1.125rem;
+            min-width: 20px;
         }
 
         .delete-btn {
             background: none;
             border: none;
-            color: #6c757d;
+            color: var(--text-muted);
             cursor: pointer;
-            padding: 8px;
-            border-radius: 6px;
-            font-size: 0.9rem;
-            transition: all 0.2s ease;
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            transition: all 0.3s ease;
             opacity: 0;
             transform: translateX(10px);
         }
@@ -102,128 +209,244 @@
         }
 
         .delete-btn:hover {
-            background: rgba(220, 53, 69, 0.1);
-            color: #dc3545;
+            background: rgba(211, 47, 47, 0.1);
+            color: var(--danger-color);
+        }
+
+        .add-form-btn {
+            background: var(--accent-gradient);
+            color: white;
+            border: none;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+        }
+
+        .add-form-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-glow);
         }
 
         .stats {
             margin-top: auto;
-            padding: 20px 16px;
-            background: rgba(0, 122, 255, 0.05);
-            border-radius: 12px;
+            padding: 1.5rem 1rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .stats-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 1rem;
             text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stats-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--accent-gradient);
         }
 
         .stats-number {
             font-size: 2rem;
             font-weight: 700;
-            color: #007aff;
+            color: var(--accent-primary);
+            font-family: 'JetBrains Mono', monospace;
         }
 
         .stats-label {
-            font-size: 0.85rem;
-            color: #6c757d;
-            margin-top: 5px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
-        /* === FORMULAIRE === */
+        /* === SECTION FORMULAIRE === */
         .form-section {
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(10px);
-            border-right: 1px solid rgba(0, 0, 0, 0.1);
-            padding: 30px;
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--border-color);
+            padding: 2rem;
             overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--accent-primary) transparent;
+        }
+
+        .form-section::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .form-section::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .form-section::-webkit-scrollbar-thumb {
+            background: var(--accent-primary);
+            border-radius: 2px;
         }
 
         .form-header {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
         }
 
         .section-title {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: #212529;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
             margin: 0;
         }
 
         .edit-btn {
-            background: rgba(40, 167, 69, 0.1);
-            color: #28a745;
+            background: rgba(74, 124, 89, 0.1);
+            color: var(--success-color);
             text-decoration: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            font-size: 0.9rem;
-            font-weight: 500;
-            transition: all 0.2s ease;
-            border: 1px solid rgba(40, 167, 69, 0.2);
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(74, 124, 89, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .edit-btn:hover {
-            background: rgba(40, 167, 69, 0.15);
-            transform: translateY(-1px);
-            box-shadow: 0 2px 8px rgba(40, 167, 69, 0.2);
+            background: rgba(74, 124, 89, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(74, 124, 89, 0.3);
+        }
+
+        .edit-btn.integration:hover {
+            background: rgba(233, 30, 99, 0.2) !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(233, 30, 99, 0.3) !important;
         }
 
         .form-description {
-            color: #6c757d;
-            margin-bottom: 30px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #007aff;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
             font-style: italic;
+            position: relative;
+        }
+
+        .form-description::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--accent-gradient);
+            border-radius: 0.75rem 0.75rem 0 0;
         }
 
         /* Messages flash */
         .flash-messages {
-            margin-bottom: 25px;
+            margin-bottom: 2rem;
         }
 
         .flash-message {
-            padding: 12px 16px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            font-size: 0.9rem;
+            padding: 1rem 1.25rem;
+            border-radius: 0.75rem;
+            margin-bottom: 0.75rem;
+            font-weight: 500;
+            border-left: 4px solid;
+            backdrop-filter: blur(10px);
+            animation: slideInDown 0.3s ease;
+        }
+
+        @keyframes slideInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .flash-message.success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+            background: var(--sakura-light);
+            color: var(--success-color);
+            border-left-color: var(--success-color);
         }
 
         .flash-message.error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+            background: rgba(211, 47, 47, 0.1);
+            color: var(--danger-color);
+            border-left-color: var(--danger-color);
+        }
+
+        /* Formulaire dynamique */
+        .dynamic-form {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 1rem;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .dynamic-form::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--accent-gradient);
         }
 
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 1.5rem;
         }
 
         .form-group label {
             display: block;
-            font-weight: 500;
-            color: #495057;
-            margin-bottom: 6px;
-            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
         }
 
         .required {
-            color: #dc3545;
+            color: var(--danger-color);
+            margin-left: 0.25rem;
         }
 
         .form-group input,
         .form-group textarea {
             width: 100%;
-            padding: 12px 16px;
-            border: 1px solid #ced4da;
-            border-radius: 8px;
-            background: #fff;
+            padding: 0.75rem 1rem;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            color: var(--text-primary);
             font-size: 1rem;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
             font-family: inherit;
         }
 
@@ -235,120 +458,240 @@
         .form-group input:focus,
         .form-group textarea:focus {
             outline: none;
-            border-color: #007aff;
-            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(74, 124, 89, 0.1);
+            background: var(--cream);
+        }
+
+        .form-group input::placeholder,
+        .form-group textarea::placeholder {
+            color: var(--text-muted);
         }
 
         .submit-btn {
             width: 100%;
-            padding: 14px;
-            background: #007aff;
+            padding: 1rem;
+            background: var(--accent-gradient);
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 0.75rem;
             font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
         }
 
         .submit-btn:hover {
-            background: #0056b3;
-            transform: translateY(-1px);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-glow);
         }
 
-        /* === TABLEAU DONNÉES === */
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        /* === SECTION DONNÉES === */
         .data-section {
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(10px);
-            padding: 30px;
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            padding: 2rem;
             overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--accent-primary) transparent;
+        }
+
+        .data-section::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .data-section::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .data-section::-webkit-scrollbar-thumb {
+            background: var(--accent-primary);
+            border-radius: 2px;
         }
 
         .data-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 25px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #007aff;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
         }
 
         .data-count {
-            font-size: 0.9rem;
-            color: #6c757d;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
         }
 
         .table-container {
-            background: white;
-            border-radius: 12px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 1rem;
             overflow: hidden;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--shadow-card);
+        }
+
+        /* Table responsive avec actions visibles */
+        .table-wrapper {
+            overflow-x: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--accent-primary) transparent;
+        }
+
+        .table-wrapper::-webkit-scrollbar {
+            height: 4px;
+        }
+
+        .table-wrapper::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .table-wrapper::-webkit-scrollbar-thumb {
+            background: var(--accent-primary);
+            border-radius: 2px;
         }
 
         .data-table {
             width: 100%;
             border-collapse: collapse;
+            min-width: 700px; /* Table minimum width pour inclure les actions */
         }
 
         .data-table th {
-            background: #f8f9fa;
-            padding: 12px 10px;
+            background: var(--bg-primary);
+            padding: 1rem 0.75rem;
             text-align: left;
             font-weight: 600;
-            color: #495057;
-            border-bottom: 1px solid #dee2e6;
-            font-size: 0.9rem;
+            color: var(--text-primary);
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.875rem;
+            font-family: 'JetBrains Mono', monospace;
+            white-space: nowrap;
         }
 
         .data-table td {
-            padding: 10px;
-            border-bottom: 1px solid #f8f9fa;
-            color: #212529;
-            font-size: 0.9rem;
-            max-width: 150px;
+            padding: 1rem 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            max-width: 120px;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
         }
 
+        /* Colonne Actions - toujours visible */
+        .data-table th:last-child,
+        .data-table td:last-child {
+            width: 100px;
+            min-width: 100px;
+            max-width: 100px;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .data-table tbody tr {
+            transition: all 0.3s ease;
+        }
+
         .data-table tbody tr:hover {
-            background: rgba(0, 122, 255, 0.05);
+            background: var(--sakura-light);
+            transform: scale(1.01);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .edit-entry-btn,
+        .delete-entry-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 2rem;
+            height: 2rem;
+        }
+
+        .edit-entry-btn {
+            color: var(--success-color);
+            background: rgba(74, 124, 89, 0.1);
+        }
+
+        .edit-entry-btn:hover {
+            background: rgba(74, 124, 89, 0.2);
+            transform: scale(1.1);
+        }
+
+        .delete-entry-btn {
+            color: var(--danger-color);
+            background: rgba(211, 47, 47, 0.1);
+        }
+
+        .delete-entry-btn:hover {
+            background: rgba(211, 47, 47, 0.2);
+            transform: scale(1.1);
         }
 
         .no-data {
             text-align: center;
-            padding: 60px 20px;
-            color: #6c757d;
+            padding: 4rem 2rem;
+            color: var(--text-muted);
             font-style: italic;
         }
 
-        /* Responsive */
+        /* Responsive Design */
         @media (max-width: 1200px) {
             .container {
-                grid-template-columns: 200px 1fr 1fr;
+                grid-template-columns: 250px 1fr 1fr;
             }
         }
 
-        @media (max-width: 768px) {
+        @media (max-width: 968px) {
             .container {
                 grid-template-columns: 1fr;
                 grid-template-rows: auto auto 1fr;
-                height: auto;
-            }
-
-            body {
-                overflow: auto;
+                min-height: 100vh;
             }
 
             .sidebar {
-                padding: 20px;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+            }
+
+            .logo {
+                padding: 1rem;
             }
 
             .menu {
+                padding: 1rem;
                 display: flex;
                 flex-wrap: wrap;
-                gap: 10px;
+                gap: 0.5rem;
+            }
+
+            .menu-section {
+                margin-bottom: 0;
+            }
+
+            .menu-section-title {
+                display: none;
             }
 
             .menu-item {
@@ -356,18 +699,124 @@
             }
 
             .stats {
-                margin-top: 20px;
+                margin-top: 0;
+                padding: 1rem;
+                border-top: none;
             }
 
             .form-section,
             .data-section {
-                padding: 20px;
+                padding: 1.5rem;
+            }
+
+            .section-title {
+                font-size: 1.5rem;
+            }
+
+            .dynamic-form {
+                padding: 1.5rem;
+            }
+
+            .form-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            /* Table responsive mobile avec actions */
+            .data-table {
+                min-width: 550px; /* Reduced but keeps actions visible */
             }
 
             .data-table th,
             .data-table td {
-                padding: 8px 6px;
+                padding: 0.75rem 0.5rem;
+                font-size: 0.75rem;
+            }
+
+            .data-table td {
+                max-width: 100px;
+            }
+
+            /* Actions column stays same size on mobile */
+            .data-table th:last-child,
+            .data-table td:last-child {
+                width: 80px;
+                min-width: 80px;
+                max-width: 80px;
+            }
+
+            .edit-entry-btn,
+            .delete-entry-btn {
+                font-size: 0.9rem;
+                min-width: 1.8rem;
+                height: 1.8rem;
+                padding: 0.3rem;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .form-section,
+            .data-section {
+                padding: 1rem;
+            }
+
+            .dynamic-form {
+                padding: 1rem;
+            }
+
+            .section-title {
+                font-size: 1.25rem;
+            }
+
+            /* Mobile table ultra-responsive avec actions toujours visibles */
+            .data-table {
+                min-width: 480px;
+            }
+
+            .data-table th,
+            .data-table td {
+                padding: 0.5rem 0.25rem;
+                font-size: 0.7rem;
+            }
+
+            .data-table td {
+                max-width: 80px;
+            }
+
+            /* Actions column - compact but visible */
+            .data-table th:last-child,
+            .data-table td:last-child {
+                width: 70px;
+                min-width: 70px;
+                max-width: 70px;
+            }
+
+            .action-buttons {
+                gap: 0.25rem;
+            }
+
+            .edit-entry-btn,
+            .delete-entry-btn {
                 font-size: 0.8rem;
+                min-width: 1.5rem;
+                height: 1.5rem;
+                padding: 0.2rem;
+            }
+
+            /* Mobile scroll indicator */
+            .table-wrapper {
+                position: relative;
+            }
+
+            .table-wrapper::after {
+                content: '← Glissez pour voir plus →';
+                position: absolute;
+                bottom: -1.5rem;
+                left: 50%;
+                transform: translateX(-50%);
+                font-size: 0.7rem;
+                color: var(--text-muted);
+                font-style: italic;
             }
         }
     </style>
@@ -377,61 +826,87 @@
         
         <!-- === SIDEBAR === -->
         <div class="sidebar">
-            <div class="logo">📋 UserApp</div>
+            <div class="logo">
+                <h1>FormCraft</h1>
+                <p>v2.0.0</p>
+            </div>
             
-            <ul class="menu">
-                <li class="menu-item">
-                    <a href="/" class="menu-link">👥 Utilisateurs (défaut)</a>
-                </li>
-                
-                {% if forms %}
-                    <li class="menu-separator">
-                        <div style="border-top: 1px solid #dee2e6; margin: 15px 0;"></div>
-                        <div style="font-size: 0.8rem; color: #6c757d; padding: 0 16px; margin-bottom: 10px;">MES FORMULAIRES</div>
-                    </li>
-                    {% for form in forms %}
+            <div class="menu">
+                <div class="menu-section">
+                    <div class="menu-section-title">Principal</div>
+                    <ul style="list-style: none;">
                         <li class="menu-item">
                             <div class="menu-item-content">
-                                <a href="/form/{{ form.name }}" 
-                                   class="menu-link {% if current_form == form.name %}active{% endif %}">
-                                    📋 {{ form.title }}
+                                <a href="/" class="menu-link">
+                                    <span class="menu-icon">👥</span>
+                                    <span>Utilisateurs</span>
                                 </a>
-                                <button onclick="deleteForm('{{ form.name }}', '{{ form.title }}')" 
-                                        class="delete-btn" title="Supprimer ce formulaire">🗑️</button>
                             </div>
                         </li>
-                    {% endfor %}
+                        <li class="menu-item">
+                            <div class="menu-item-content">
+                                <a href="/api/docs" class="menu-link" target="_blank">
+                                    <span class="menu-icon">🔗</span>
+                                    <span>API REST</span>
+                                </a>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                
+                {% if forms %}
+                    <div class="menu-section">
+                        <div class="menu-section-title">Mes Formulaires</div>
+                        <ul style="list-style: none;">
+                            {% for form in forms %}
+                                <li class="menu-item">
+                                    <div class="menu-item-content">
+                                        <a href="/form/{{ form.name }}" 
+                                           class="menu-link {% if current_form == form.name %}active{% endif %}">
+                                            <span class="menu-icon">📋</span>
+                                            <span>{{ form.title }}</span>
+                                        </a>
+                                        <button onclick="deleteForm('{{ form.name }}', '{{ form.title }}')" 
+                                                class="delete-btn" title="Supprimer">🗑️</button>
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
                 {% endif %}
                 
-                <li class="menu-separator">
-                    <div style="border-top: 1px solid #dee2e6; margin: 15px 0;"></div>
-                </li>
-                <li class="menu-item">
-                    <a href="/create-form" class="menu-link" style="background: rgba(0, 122, 255, 0.1); color: #007aff;">
-                        ➕ Nouveau Formulaire
-                    </a>
-                </li>
-                <li class="menu-item">
-                    <a href="/api/users" class="menu-link">🔗 API</a>
-                </li>
-            </ul>
+                <a href="/create-form" class="add-form-btn">
+                    <span>➕</span>
+                    <span>Nouveau Formulaire</span>
+                </a>
+            </div>
 
             <div class="stats">
-                <div class="stats-number">{{ entries|length }}</div>
-                <div class="stats-label">Entrées</div>
+                <div class="stats-card">
+                    <div class="stats-number">{{ entries|length }}</div>
+                    <div class="stats-label">Entrées</div>
+                </div>
             </div>
         </div>
 
-        <!-- === FORMULAIRE === -->
+        <!-- === SECTION FORMULAIRE === -->
         <div class="form-section">
             <div class="form-header">
                 <h2 class="section-title">{{ form_info.title }}</h2>
-                <a href="/edit-form/{{ current_form }}" class="edit-btn" title="Modifier ce formulaire">
-                    ✏️ Modifier
-                </a>
+                <div style="display: flex; gap: 0.75rem;">
+                    <a href="/form/{{ current_form }}/integration" class="edit-btn integration" style="background: rgba(233, 30, 99, 0.1); color: var(--accent-secondary); border-color: rgba(233, 30, 99, 0.3);">
+                        <span>🔌</span>
+                        <span>Intégration</span>
+                    </a>
+                    <a href="/edit-form/{{ current_form }}" class="edit-btn">
+                        <span>✏️</span>
+                        <span>Modifier</span>
+                    </a>
+                </div>
             </div>
+            
             {% if form_info.description %}
-                <p class="form-description">{{ form_info.description }}</p>
+                <div class="form-description">{{ form_info.description }}</div>
             {% endif %}
 
             <!-- Messages flash -->
@@ -443,40 +918,42 @@
                 </div>
             {% endif %}
 
-            <form method="POST" action="/form/{{ current_form }}">
-                {% for field in fields %}
-                    <div class="form-group">
-                        <label for="{{ field.name }}">
-                            {{ field.label }}
-                            {% if field.required %}<span class="required">*</span>{% endif %}
-                        </label>
-                        
-                        {% if field.type == 'textarea' %}
-                            <textarea id="{{ field.name }}" 
-                                    name="{{ field.name }}" 
-                                    placeholder="Saisissez {{ field.label|lower }}"
-                                    {% if field.required %}required{% endif %}></textarea>
-                        {% else %}
-                            <input type="{{ field.type }}" 
-                                   id="{{ field.name }}" 
-                                   name="{{ field.name }}" 
-                                   placeholder="Saisissez {{ field.label|lower }}"
-                                   {% if field.required %}required{% endif %}
-                                   {% if field.type == 'number' %}min="0"{% endif %}>
-                        {% endif %}
-                    </div>
-                {% endfor %}
+            <div class="dynamic-form">
+                <form method="POST" action="/form/{{ current_form }}">
+                    {% for field in fields %}
+                        <div class="form-group">
+                            <label for="{{ field.name }}">
+                                {{ field.label }}
+                                {% if field.required %}<span class="required">*</span>{% endif %}
+                            </label>
+                            
+                            {% if field.type == 'textarea' %}
+                                <textarea id="{{ field.name }}" 
+                                        name="{{ field.name }}" 
+                                        placeholder="Saisissez {{ field.label|lower }}"
+                                        {% if field.required %}required{% endif %}></textarea>
+                            {% else %}
+                                <input type="{{ field.type }}" 
+                                       id="{{ field.name }}" 
+                                       name="{{ field.name }}" 
+                                       placeholder="Saisissez {{ field.label|lower }}"
+                                       {% if field.required %}required{% endif %}
+                                       {% if field.type == 'number' %}min="0"{% endif %}>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
 
-                <button type="submit" class="submit-btn">
-                    ✅ Enregistrer dans {{ form_info.title }}
-                </button>
-            </form>
+                    <button type="submit" class="submit-btn">
+                        ✅ Enregistrer dans {{ form_info.title }}
+                    </button>
+                </form>
+            </div>
         </div>
 
-        <!-- === TABLEAU DONNÉES === -->
+        <!-- === SECTION DONNÉES === -->
         <div class="data-section">
             <div class="data-header">
-                <h2 class="section-title" style="margin: 0; border: none; padding: 0;">Données enregistrées</h2>
+                <h2 class="section-title" style="margin: 0;">Données enregistrées</h2>
                 <div class="data-count">
                     {{ entries|length }} entrée{% if entries|length != 1 %}s{% endif %}
                 </div>
@@ -484,28 +961,39 @@
 
             {% if entries %}
                 <div class="table-container">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                {% for field in fields %}
-                                    <th>{{ field.label }}</th>
-                                {% endfor %}
-                                <th>Date</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for entry in entries %}
+                    <div class="table-wrapper">
+                        <table class="data-table">
+                            <thead>
                                 <tr>
-                                    <td><strong>#{{ entry.id }}</strong></td>
+                                    <th>ID</th>
                                     {% for field in fields %}
-                                        <td title="{{ entry[field.name] }}">{{ entry[field.name] }}</td>
+                                        <th>{{ field.label }}</th>
                                     {% endfor %}
-                                    <td>{{ entry.created_at[:16] if entry.created_at else 'N/A' }}</td>
+                                    <th>Date</th>
+                                    <th>Actions</th>
                                 </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {% for entry in entries %}
+                                    <tr>
+                                        <td><strong>#{{ entry.id }}</strong></td>
+                                        {% for field in fields %}
+                                            <td title="{{ entry[field.name] }}">{{ entry[field.name] }}</td>
+                                        {% endfor %}
+                                        <td>{{ entry.created_at[:16] if entry.created_at else 'N/A' }}</td>
+                                        <td>
+                                            <div class="action-buttons">
+                                                <button onclick="editEntry({{ entry.id }})" 
+                                                        class="edit-entry-btn" title="Modifier">✏️</button>
+                                                <button onclick="deleteEntry({{ entry.id }})" 
+                                                        class="delete-entry-btn" title="Supprimer">🗑️</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             {% else %}
                 <div class="no-data">
@@ -518,7 +1006,6 @@
 
     <script>
         function deleteForm(formName, formTitle) {
-            // Confirmation de suppression
             const confirmed = confirm(
                 `⚠️ ATTENTION ⚠️\n\n` +
                 `Voulez-vous vraiment supprimer le formulaire "${formTitle}" ?\n\n` +
@@ -535,7 +1022,6 @@
                 );
 
                 if (finalConfirm === "SUPPRIMER") {
-                    // Créer un formulaire caché pour envoyer la requête DELETE
                     const form = document.createElement('form');
                     form.method = 'POST';
                     form.action = `/delete-form/${formName}`;
@@ -546,6 +1032,40 @@
                 }
             }
         }
+
+        function editEntry(entryId) {
+            window.location.href = `/edit-entry/{{ current_form }}/${entryId}`;
+        }
+
+        function deleteEntry(entryId) {
+            const confirmed = confirm(
+                `⚠️ Confirmer la suppression\n\n` +
+                `Voulez-vous vraiment supprimer cette entrée ?\n\n` +
+                `Cette action est irréversible.`
+            );
+
+            if (confirmed) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `/delete-entry/{{ current_form }}/${entryId}`;
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+
+        // Animations au chargement
+        document.addEventListener('DOMContentLoaded', function() {
+            const elements = document.querySelectorAll('.dynamic-form, .table-container, .stats-card');
+            elements.forEach((element, index) => {
+                element.style.opacity = '0';
+                element.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    element.style.transition = 'all 0.6s ease';
+                    element.style.opacity = '1';
+                    element.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        });
     </script>
 </body>
 </html> 

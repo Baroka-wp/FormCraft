@@ -3,12 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestion Utilisateurs</title>
+    <title>FormCraft - Générateur de formulaires</title>
     <style>
         /* File: index.html */
-        /* Purpose: Interface 3 colonnes pour gestion utilisateurs */
-        /* Layout: Sidebar | Formulaire | Tableau utilisateurs */
+        /* Purpose: Interface style japonais pour la gestion des formulaires */
+        /* Design: Couleurs japonaises douces, responsive optimisé */
         
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+        
+        :root {
+            /* Style japonais - couleurs douces et naturelles */
+            --bg-primary: #faf9f7;
+            --bg-secondary: #f5f3f0;
+            --bg-card: rgba(255, 255, 255, 0.8);
+            --accent-primary: #2d5016;        /* Vert matcha foncé */
+            --accent-secondary: #e91e63;      /* Rose sakura */
+            --accent-gradient: linear-gradient(135deg, #4a7c59, #e91e63);
+            --text-primary: #2c2c2c;
+            --text-secondary: #666666;
+            --text-muted: #999999;
+            --border-color: rgba(45, 80, 22, 0.1);
+            --success-color: #4a7c59;         /* Vert bambou */
+            --danger-color: #d32f2f;
+            --warning-color: #ff9800;
+            --shadow-glow: 0 0 20px rgba(74, 124, 89, 0.2);
+            --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.1);
+            --matcha-light: #8bc34a;          /* Vert matcha clair */
+            --sakura-light: #fce4ec;          /* Rose sakura clair */
+            --cream: #fff8e1;                 /* Crème */
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -16,82 +40,165 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            color: #212529;
-            height: 100vh;
-            overflow: hidden;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(74, 124, 89, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(233, 30, 99, 0.05) 0%, transparent 50%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
         }
 
         .container {
             display: grid;
-            grid-template-columns: 250px 1fr 1fr;
-            height: 100vh;
+            grid-template-columns: 280px 1fr 1fr;
+            min-height: 100vh;
             gap: 0;
+            position: relative;
         }
 
         /* === SIDEBAR === */
         .sidebar {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-right: 1px solid rgba(0, 0, 0, 0.1);
-            padding: 30px 20px;
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--border-color);
             display: flex;
             flex-direction: column;
+            position: relative;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--accent-primary) transparent;
+        }
+
+        .sidebar::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: var(--accent-primary);
+            border-radius: 2px;
         }
 
         .logo {
+            padding: 2rem 1.5rem 1rem;
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .logo h1 {
+            font-family: 'JetBrains Mono', monospace;
             font-size: 1.5rem;
             font-weight: 700;
-            color: #007aff;
-            margin-bottom: 40px;
-            text-align: center;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+            animation: glow 3s ease-in-out infinite alternate;
+        }
+
+        .logo p {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        @keyframes glow {
+            from { filter: drop-shadow(0 0 5px rgba(74, 124, 89, 0.3)); }
+            to { filter: drop-shadow(0 0 15px rgba(233, 30, 99, 0.3)); }
         }
 
         .menu {
+            flex: 1;
+            padding: 1.5rem 1rem;
             list-style: none;
         }
 
+        .menu-section {
+            margin-bottom: 2rem;
+        }
+
+        .menu-section-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.75rem;
+            padding: 0 0.75rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
         .menu-item {
-            margin-bottom: 15px;
-        }
-
-        .menu-link {
-            display: block;
-            padding: 12px 16px;
-            color: #6c757d;
-            text-decoration: none;
-            border-radius: 8px;
-            transition: all 0.2s ease;
-            font-weight: 500;
-        }
-
-        .menu-link:hover,
-        .menu-link.active {
-            background: rgba(0, 122, 255, 0.1);
-            color: #007aff;
+            margin-bottom: 0.5rem;
         }
 
         .menu-item-content {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 0.5rem;
+            position: relative;
         }
 
-        .menu-item-content .menu-link {
+        .menu-link {
             flex: 1;
-            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            font-size: 0.875rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .menu-link::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--sakura-light), var(--cream));
+            opacity: 0.7;
+            transition: left 0.3s ease;
+        }
+
+        .menu-link:hover::before,
+        .menu-link.active::before {
+            left: 0;
+        }
+
+        .menu-link:hover,
+        .menu-link.active {
+            color: var(--accent-primary);
+            transform: translateX(4px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .menu-icon {
+            font-size: 1.125rem;
+            min-width: 20px;
         }
 
         .delete-btn {
             background: none;
             border: none;
-            color: #6c757d;
+            color: var(--text-muted);
             cursor: pointer;
-            padding: 8px;
-            border-radius: 6px;
-            font-size: 0.9rem;
-            transition: all 0.2s ease;
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            transition: all 0.3s ease;
             opacity: 0;
             transform: translateX(10px);
         }
@@ -102,217 +209,385 @@
         }
 
         .delete-btn:hover {
-            background: rgba(220, 53, 69, 0.1);
-            color: #dc3545;
+            background: rgba(211, 47, 47, 0.1);
+            color: var(--danger-color);
+        }
+
+        .add-form-btn {
+            background: var(--accent-gradient);
+            color: white;
+            border: none;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+        }
+
+        .add-form-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-glow);
         }
 
         .stats {
             margin-top: auto;
-            padding: 20px 16px;
-            background: rgba(0, 122, 255, 0.05);
-            border-radius: 12px;
+            padding: 1.5rem 1rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .stats-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 1rem;
             text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stats-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--accent-gradient);
         }
 
         .stats-number {
             font-size: 2rem;
             font-weight: 700;
-            color: #007aff;
+            color: var(--accent-primary);
+            font-family: 'JetBrains Mono', monospace;
         }
 
         .stats-label {
-            font-size: 0.85rem;
-            color: #6c757d;
-            margin-top: 5px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
-        /* === FORMULAIRE === */
-        .form-section {
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(10px);
-            border-right: 1px solid rgba(0, 0, 0, 0.1);
-            padding: 30px;
+        /* === SECTION PRINCIPALE === */
+        .main-section {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--border-color);
+            padding: 2rem;
             overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--accent-primary) transparent;
+        }
+
+        .main-section::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .main-section::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .main-section::-webkit-scrollbar-thumb {
+            background: var(--accent-primary);
+            border-radius: 2px;
+        }
+
+        .section-header {
+            margin-bottom: 2rem;
         }
 
         .section-title {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: #212529;
-            margin-bottom: 30px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #007aff;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .section-subtitle {
+            color: var(--text-secondary);
+            font-size: 1rem;
         }
 
         /* Messages flash */
         .flash-messages {
-            margin-bottom: 25px;
+            margin-bottom: 2rem;
         }
 
         .flash-message {
-            padding: 12px 16px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            font-size: 0.9rem;
+            padding: 1rem 1.25rem;
+            border-radius: 0.75rem;
+            margin-bottom: 0.75rem;
+            font-weight: 500;
+            border-left: 4px solid;
+            backdrop-filter: blur(10px);
+            animation: slideInDown 0.3s ease;
+        }
+
+        @keyframes slideInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .flash-message.success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
+            background: var(--sakura-light);
+            color: var(--success-color);
+            border-left-color: var(--success-color);
         }
 
         .flash-message.error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+            background: rgba(211, 47, 47, 0.1);
+            color: var(--danger-color);
+            border-left-color: var(--danger-color);
+        }
+
+        /* Formulaire principal */
+        .form-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 1rem;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .form-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--accent-gradient);
         }
 
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 1.5rem;
         }
 
         .form-group label {
             display: block;
-            font-weight: 500;
-            color: #495057;
-            margin-bottom: 6px;
-            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
         }
 
         .form-group input {
             width: 100%;
-            padding: 12px 16px;
-            border: 1px solid #ced4da;
-            border-radius: 8px;
-            background: #fff;
+            padding: 0.75rem 1rem;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            color: var(--text-primary);
             font-size: 1rem;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
+            font-family: inherit;
         }
 
         .form-group input:focus {
             outline: none;
-            border-color: #007aff;
-            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(74, 124, 89, 0.1);
+            background: var(--cream);
+        }
+
+        .form-group input::placeholder {
+            color: var(--text-muted);
         }
 
         .submit-btn {
             width: 100%;
-            padding: 14px;
-            background: #007aff;
+            padding: 1rem;
+            background: var(--accent-gradient);
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 0.75rem;
             font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
         }
 
         .submit-btn:hover {
-            background: #0056b3;
-            transform: translateY(-1px);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-glow);
         }
 
-        /* === TABLEAU UTILISATEURS === */
-        .users-section {
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(10px);
-            padding: 30px;
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        /* === SECTION DONNÉES === */
+        .data-section {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            padding: 2rem;
             overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--accent-primary) transparent;
         }
 
-        .users-header {
+        .data-section::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .data-section::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .data-section::-webkit-scrollbar-thumb {
+            background: var(--accent-primary);
+            border-radius: 2px;
+        }
+
+        .data-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 25px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #007aff;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
         }
 
-        .users-count {
-            font-size: 0.9rem;
-            color: #6c757d;
+        .data-count {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
         }
 
         .table-container {
-            background: white;
-            border-radius: 12px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 1rem;
             overflow: hidden;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--shadow-card);
+        }
+
+        /* Table responsive améliorée */
+        .table-wrapper {
+            overflow-x: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--accent-primary) transparent;
+        }
+
+        .table-wrapper::-webkit-scrollbar {
+            height: 4px;
+        }
+
+        .table-wrapper::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .table-wrapper::-webkit-scrollbar-thumb {
+            background: var(--accent-primary);
+            border-radius: 2px;
         }
 
         .users-table {
             width: 100%;
             border-collapse: collapse;
+            min-width: 600px; /* Table minimum width pour le scroll horizontal */
         }
 
         .users-table th {
-            background: #f8f9fa;
-            padding: 15px 12px;
+            background: var(--bg-primary);
+            padding: 1rem 0.75rem;
             text-align: left;
             font-weight: 600;
-            color: #495057;
-            border-bottom: 1px solid #dee2e6;
+            color: var(--text-primary);
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.875rem;
+            font-family: 'JetBrains Mono', monospace;
+            white-space: nowrap;
         }
 
         .users-table td {
-            padding: 12px;
-            border-bottom: 1px solid #f8f9fa;
-            color: #212529;
+            padding: 1rem 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            white-space: nowrap;
+        }
+
+        .users-table tbody tr {
+            transition: all 0.3s ease;
         }
 
         .users-table tbody tr:hover {
-            background: rgba(0, 122, 255, 0.05);
+            background: var(--sakura-light);
+            transform: scale(1.01);
         }
 
         .user-avatar {
-            width: 32px;
-            height: 32px;
-            background: linear-gradient(135deg, #007aff, #0056b3);
+            width: 2rem;
+            height: 2rem;
+            background: var(--accent-gradient);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-weight: 600;
-            font-size: 0.8rem;
+            font-weight: 700;
+            font-size: 0.75rem;
+            font-family: 'JetBrains Mono', monospace;
         }
 
-        .no-users {
+        .no-data {
             text-align: center;
-            padding: 60px 20px;
-            color: #6c757d;
+            padding: 4rem 2rem;
+            color: var(--text-muted);
             font-style: italic;
         }
 
-        /* Responsive */
+        /* Responsive Design */
         @media (max-width: 1200px) {
             .container {
-                grid-template-columns: 200px 1fr 1fr;
+                grid-template-columns: 250px 1fr 1fr;
             }
         }
 
-        @media (max-width: 768px) {
+        @media (max-width: 968px) {
             .container {
                 grid-template-columns: 1fr;
                 grid-template-rows: auto auto 1fr;
-                height: auto;
-            }
-
-            body {
-                overflow: auto;
+                min-height: 100vh;
             }
 
             .sidebar {
-                padding: 20px;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+            }
+
+            .logo {
+                padding: 1rem;
             }
 
             .menu {
+                padding: 1rem;
                 display: flex;
                 flex-wrap: wrap;
-                gap: 10px;
+                gap: 0.5rem;
+            }
+
+            .menu-section {
+                margin-bottom: 0;
+            }
+
+            .menu-section-title {
+                display: none;
             }
 
             .menu-item {
@@ -320,12 +595,81 @@
             }
 
             .stats {
-                margin-top: 20px;
+                margin-top: 0;
+                padding: 1rem;
+                border-top: none;
             }
 
-            .form-section,
-            .users-section {
-                padding: 20px;
+            .main-section,
+            .data-section {
+                padding: 1.5rem;
+            }
+
+            .section-title {
+                font-size: 1.5rem;
+            }
+
+            .form-card {
+                padding: 1.5rem;
+            }
+
+            /* Table responsive mobile */
+            .users-table {
+                min-width: 500px; /* Reduced minimum width for mobile */
+            }
+
+            .users-table th,
+            .users-table td {
+                padding: 0.75rem 0.5rem;
+                font-size: 0.75rem;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .main-section,
+            .data-section {
+                padding: 1rem;
+            }
+
+            .form-card {
+                padding: 1rem;
+            }
+
+            .section-title {
+                font-size: 1.25rem;
+            }
+
+            /* Mobile table optimizations */
+            .users-table {
+                min-width: 450px;
+            }
+
+            .users-table th,
+            .users-table td {
+                padding: 0.5rem 0.25rem;
+                font-size: 0.7rem;
+            }
+
+            .user-avatar {
+                width: 1.5rem;
+                height: 1.5rem;
+                font-size: 0.6rem;
+            }
+
+            /* Better mobile scroll indicator */
+            .table-wrapper {
+                position: relative;
+            }
+
+            .table-wrapper::after {
+                content: '← Glissez pour voir plus →';
+                position: absolute;
+                bottom: -1.5rem;
+                left: 50%;
+                transform: translateX(-50%);
+                font-size: 0.7rem;
+                color: var(--text-muted);
+                font-style: italic;
             }
         }
     </style>
@@ -335,51 +679,74 @@
         
         <!-- === SIDEBAR === -->
         <div class="sidebar">
-            <div class="logo">📋 UserApp</div>
+            <div class="logo">
+                <h1>FormCraft</h1>
+                <p>v2.0.0</p>
+            </div>
             
-            <ul class="menu">
-                <li class="menu-item">
-                    <a href="/" class="menu-link active">👥 Utilisateurs (défaut)</a>
-                </li>
-                
-                {% if forms %}
-                    <li class="menu-separator">
-                        <div style="border-top: 1px solid #dee2e6; margin: 15px 0;"></div>
-                        <div style="font-size: 0.8rem; color: #6c757d; padding: 0 16px; margin-bottom: 10px;">MES FORMULAIRES</div>
-                    </li>
-                    {% for form in forms %}
+            <div class="menu">
+                <div class="menu-section">
+                    <div class="menu-section-title">Principal</div>
+                    <ul style="list-style: none;">
                         <li class="menu-item">
                             <div class="menu-item-content">
-                                <a href="/form/{{ form.name }}" class="menu-link">📋 {{ form.title }}</a>
-                                <button onclick="deleteForm('{{ form.name }}', '{{ form.title }}')" 
-                                        class="delete-btn" title="Supprimer ce formulaire">🗑️</button>
+                                <a href="/" class="menu-link active">
+                                    <span class="menu-icon">👥</span>
+                                    <span>Utilisateurs</span>
+                                </a>
                             </div>
                         </li>
-                    {% endfor %}
+                        <li class="menu-item">
+                            <div class="menu-item-content">
+                                <a href="/api/docs" class="menu-link" target="_blank">
+                                    <span class="menu-icon">🔗</span>
+                                    <span>API REST</span>
+                                </a>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                
+                {% if forms %}
+                    <div class="menu-section">
+                        <div class="menu-section-title">Mes Formulaires</div>
+                        <ul style="list-style: none;">
+                            {% for form in forms %}
+                                <li class="menu-item">
+                                    <div class="menu-item-content">
+                                        <a href="/form/{{ form.name }}" class="menu-link">
+                                            <span class="menu-icon">📋</span>
+                                            <span>{{ form.title }}</span>
+                                        </a>
+                                        <button onclick="deleteForm('{{ form.name }}', '{{ form.title }}')" 
+                                                class="delete-btn" title="Supprimer">🗑️</button>
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
                 {% endif %}
                 
-                <li class="menu-separator">
-                    <div style="border-top: 1px solid #dee2e6; margin: 15px 0;"></div>
-                </li>
-                <li class="menu-item">
-                    <a href="/create-form" class="menu-link" style="background: rgba(0, 122, 255, 0.1); color: #007aff;">
-                        ➕ Nouveau Formulaire
-                    </a>
-                </li>
-                <li class="menu-item">
-                    <a href="/api/users" class="menu-link">🔗 API</a>
-                </li>
-            </ul>
+                <a href="/create-form" class="add-form-btn">
+                    <span>➕</span>
+                    <span>Nouveau Formulaire</span>
+                </a>
+            </div>
 
             <div class="stats">
-                <div class="stats-number">{{ users|length }}</div>
-                <div class="stats-label">Utilisateurs</div>
+                <div class="stats-card">
+                    <div class="stats-number">{{ users|length }}</div>
+                    <div class="stats-label">Utilisateurs</div>
+                </div>
             </div>
         </div>
 
-        <!-- === FORMULAIRE === -->
-        <div class="form-section">
-            <h2 class="section-title">Ajouter un utilisateur</h2>
+        <!-- === SECTION PRINCIPALE === -->
+        <div class="main-section">
+            <div class="section-header">
+                <h2 class="section-title">Gestion des Utilisateurs</h2>
+                <p class="section-subtitle">Ajouter et gérer les utilisateurs du système principal</p>
+            </div>
 
             <!-- Messages flash -->
             {% if get_flashed_messages() %}
@@ -390,68 +757,72 @@
                 </div>
             {% endif %}
 
-            <form method="POST" action="/">
-                <div class="form-group">
-                    <label for="nom">Nom de famille</label>
-                    <input type="text" id="nom" name="nom" placeholder="Dupont" required>
-                </div>
+            <div class="form-card">
+                <form method="POST" action="/">
+                    <div class="form-group">
+                        <label for="nom">Nom de famille</label>
+                        <input type="text" id="nom" name="nom" placeholder="Dupont" required>
+                    </div>
 
-                <div class="form-group">
-                    <label for="prenom">Prénom</label>
-                    <input type="text" id="prenom" name="prenom" placeholder="Jean" required>
-                </div>
+                    <div class="form-group">
+                        <label for="prenom">Prénom</label>
+                        <input type="text" id="prenom" name="prenom" placeholder="Jean" required>
+                    </div>
 
-                <div class="form-group">
-                    <label for="age">Âge</label>
-                    <input type="number" id="age" name="age" placeholder="25" min="0" max="150" required>
-                </div>
+                    <div class="form-group">
+                        <label for="age">Âge</label>
+                        <input type="number" id="age" name="age" placeholder="25" min="0" max="150" required>
+                    </div>
 
-                <button type="submit" class="submit-btn">
-                    ➕ Ajouter l'utilisateur
-                </button>
-            </form>
+                    <button type="submit" class="submit-btn">
+                        ➕ Ajouter l'utilisateur
+                    </button>
+                </form>
+            </div>
         </div>
 
-        <!-- === TABLEAU UTILISATEURS === -->
-        <div class="users-section">
-            <div class="users-header">
-                <h2 class="section-title" style="margin: 0; border: none; padding: 0;">Liste des utilisateurs</h2>
-                <div class="users-count">
+        <!-- === SECTION DONNÉES === -->
+        <div class="data-section">
+            <div class="data-header">
+                <h2 class="section-title" style="margin: 0;">Liste des utilisateurs</h2>
+                <div class="data-count">
                     {{ users|length }} utilisateur{% if users|length != 1 %}s{% endif %}
                 </div>
             </div>
 
             {% if users %}
                 <div class="table-container">
-                    <table class="users-table">
-                        <thead>
-                            <tr>
-                                <th>Avatar</th>
-                                <th>Nom</th>
-                                <th>Prénom</th>
-                                <th>Âge</th>
-                                <th>Ajouté le</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for user in users %}
+                    <div class="table-wrapper">
+                        <table class="users-table">
+                            <thead>
                                 <tr>
-                                    <td>
-                                        <div class="user-avatar">
-                                            {{ user.prenom[0]|upper }}{{ user.nom[0]|upper }}
-                                        </div>
-                                    </td>
-                                    <td><strong>{{ user.nom }}</strong></td>
-                                    <td>{{ user.prenom }}</td>
-                                    <td>{{ user.age }} ans</td>
-                                    <td>{{ user.created_at[:10] }}</td>
+                                    <th>Avatar</th>
+                                    <th>Nom</th>
+                                    <th>Prénom</th>
+                                    <th>Âge</th>
+                                    <th>Date</th>
                                 </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {% for user in users %}
+                                    <tr>
+                                        <td>
+                                            <div class="user-avatar">
+                                                {{ user.prenom[0]|upper }}{{ user.nom[0]|upper }}
+                                            </div>
+                                        </td>
+                                        <td><strong>{{ user.nom }}</strong></td>
+                                        <td>{{ user.prenom }}</td>
+                                        <td>{{ user.age }} ans</td>
+                                        <td>{{ user.created_at[:10] }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             {% else %}
-                <div class="no-users">
+                <div class="no-data">
                     Aucun utilisateur enregistré.<br>
                     Utilisez le formulaire pour ajouter le premier utilisateur.
                 </div>
@@ -461,7 +832,6 @@
 
     <script>
         function deleteForm(formName, formTitle) {
-            // Confirmation de suppression
             const confirmed = confirm(
                 `⚠️ ATTENTION ⚠️\n\n` +
                 `Voulez-vous vraiment supprimer le formulaire "${formTitle}" ?\n\n` +
@@ -478,7 +848,6 @@
                 );
 
                 if (finalConfirm === "SUPPRIMER") {
-                    // Créer un formulaire caché pour envoyer la requête DELETE
                     const form = document.createElement('form');
                     form.method = 'POST';
                     form.action = `/delete-form/${formName}`;
@@ -489,6 +858,20 @@
                 }
             }
         }
+
+        // Animations au chargement
+        document.addEventListener('DOMContentLoaded', function() {
+            const elements = document.querySelectorAll('.form-card, .table-container, .stats-card');
+            elements.forEach((element, index) => {
+                element.style.opacity = '0';
+                element.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    element.style.transition = 'all 0.6s ease';
+                    element.style.opacity = '1';
+                    element.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+        });
     </script>
 </body>
 </html> 

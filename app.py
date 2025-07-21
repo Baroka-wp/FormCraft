@@ -128,6 +128,63 @@ def get_form_entries(db_path):
         conn.close()
         return []
 
+def get_single_entry(db_path, entry_id):
+    """Récupère une entrée spécifique par son ID"""
+    if not os.path.exists(db_path):
+        return None
+    
+    conn = sqlite3.connect(db_path)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    
+    try:
+        entry = cursor.execute('SELECT * FROM entries WHERE id = ?', (entry_id,)).fetchone()
+        conn.close()
+        return entry
+    except:
+        conn.close()
+        return None
+
+def update_form_entry(db_path, fields, form_data, entry_id):
+    """Met à jour une entrée existante dans la base de données"""
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    
+    # Construction de la requête UPDATE
+    field_names = [field['name'] for field in fields]
+    set_clause = ', '.join([f"{field_name} = ?" for field_name in field_names])
+    
+    sql = f"UPDATE entries SET {set_clause} WHERE id = ?"
+    values = [form_data.get(field_name, '') for field_name in field_names]
+    values.append(entry_id)
+    
+    cursor.execute(sql, values)
+    conn.commit()
+    conn.close()
+    
+    print(f"✅ Entrée {entry_id} mise à jour dans {db_path}")
+
+def delete_form_entry(db_path, entry_id):
+    """Supprime une entrée de la base de données"""
+    if not os.path.exists(db_path):
+        raise Exception("Base de données non trouvée")
+    
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    
+    try:
+        cursor.execute('DELETE FROM entries WHERE id = ?', (entry_id,))
+        if cursor.rowcount == 0:
+            raise Exception("Entrée non trouvée")
+        
+        conn.commit()
+        conn.close()
+        print(f"🗑️ Entrée {entry_id} supprimée de {db_path}")
+        
+    except Exception as e:
+        conn.close()
+        raise e
+
 def update_database_structure(db_path, old_fields, new_fields):
     """Met à jour la structure de la base de données lors de modification d'un formulaire"""
     if not os.path.exists(db_path):
@@ -435,6 +492,519 @@ def edit_form(form_name):
                          form_info=form_info, 
                          fields=current_fields,
                          form_name=form_name)
+
+@app.route('/edit-entry/<form_name>/<int:entry_id>', methods=['GET', 'POST'])
+def edit_entry(form_name, entry_id):
+    """Route pour modifier une entrée spécifique"""
+    # Récupérer les informations du formulaire
+    conn = get_db_connection()
+    form_info = conn.execute(
+        'SELECT * FROM forms WHERE name = ?', (form_name,)
+    ).fetchone()
+    
+    if not form_info:
+        flash('Formulaire non trouvé', 'error')
+        return redirect(url_for('index'))
+    
+    # Parser les champs du formulaire
+    try:
+        fields = json.loads(form_info['fields'])
+    except:
+        flash('Erreur dans la configuration du formulaire', 'error')
+        return redirect(url_for('index'))
+    
+    # Construire le chemin de la base de données
+    form_db_path = os.path.join(DATABASE_DIR, form_info['database_file'])
+    
+    # Récupérer l'entrée à modifier
+    try:
+        entry = get_single_entry(form_db_path, entry_id)
+        if not entry:
+            flash('Entrée non trouvée', 'error')
+            return redirect(url_for('dynamic_form', form_name=form_name))
+    except:
+        flash('Erreur lors de la récupération de l\'entrée', 'error')
+        return redirect(url_for('dynamic_form', form_name=form_name))
+    
+    if request.method == 'POST':
+        # Traitement de la modification
+        form_data = {}
+        errors = []
+        
+        # Validation et récupération des données
+        for field in fields:
+            field_name = field['name']
+            field_value = request.form.get(field_name, '').strip()
+            
+            # Validation des champs requis
+            if field['required'] and not field_value:
+                errors.append(f"Le champ '{field['label']}' est requis")
+                continue
+            
+            # Validation spécifique par type
+            if field_value:
+                if field['type'] == 'email' and '@' not in field_value:
+                    errors.append(f"'{field['label']}' doit être un email valide")
+                elif field['type'] == 'number':
+                    try:
+                        field_value = int(field_value)
+                    except ValueError:
+                        errors.append(f"'{field['label']}' doit être un nombre")
+            
+            form_data[field_name] = field_value
+        
+        if errors:
+            for error in errors:
+                flash(error, 'error')
+        else:
+            # Mise à jour en base de données
+            try:
+                update_form_entry(form_db_path, fields, form_data, entry_id)
+                flash('Entrée modifiée avec succès !', 'success')
+                return redirect(url_for('dynamic_form', form_name=form_name))
+            except Exception as e:
+                flash(f'Erreur lors de la modification : {str(e)}', 'error')
+    
+    conn.close()
+    return render_template('edit_entry.html', 
+                         form_info=form_info, 
+                         fields=fields, 
+                         entry=entry,
+                         form_name=form_name,
+                         entry_id=entry_id)
+
+@app.route('/delete-entry/<form_name>/<int:entry_id>', methods=['POST'])
+def delete_entry(form_name, entry_id):
+    try:
+        db_path = os.path.join(DATABASE_DIR, f'{form_name}.db')
+        delete_form_entry(db_path, entry_id)
+        flash('Entrée supprimée avec succès!', 'success')
+    except Exception as e:
+        flash(f'Erreur lors de la suppression: {str(e)}', 'error')
+    
+    return redirect(f'/form/{form_name}')
+
+# ===== API REST ENDPOINTS =====
+
+@app.route('/api/forms', methods=['GET'])
+def api_get_forms():
+    """GET /api/forms - Liste de tous les formulaires"""
+    try:
+        conn = get_db_connection()
+        forms = conn.execute('SELECT * FROM forms ORDER BY created_at DESC').fetchall()
+        conn.close()
+        
+        forms_list = []
+        for form in forms:
+            forms_list.append({
+                'id': form['id'],
+                'name': form['name'],
+                'title': form['title'],
+                'description': form['description'],
+                'fields': json.loads(form['fields']),
+                'database_file': form['database_file'],
+                'created_at': form['created_at']
+            })
+        
+        return jsonify({
+            'success': True,
+            'data': forms_list,
+            'count': len(forms_list)
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/forms/<form_name>/schema', methods=['GET'])
+def api_get_form_schema(form_name):
+    """GET /api/forms/{form_name}/schema - Schéma d'un formulaire"""
+    try:
+        conn = get_db_connection()
+        form = conn.execute('SELECT * FROM forms WHERE name = ?', (form_name,)).fetchone()
+        conn.close()
+        
+        if not form:
+            return jsonify({
+                'success': False,
+                'error': 'Formulaire non trouvé'
+            }), 404
+        
+        return jsonify({
+            'success': True,
+            'data': {
+                'name': form['name'],
+                'title': form['title'],
+                'description': form['description'],
+                'fields': json.loads(form['fields']),
+                'created_at': form['created_at']
+            }
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/forms/<form_name>/entries', methods=['GET'])
+def api_get_entries(form_name):
+    """GET /api/forms/{form_name}/entries - Liste des entrées d'un formulaire"""
+    try:
+        # Vérifier que le formulaire existe
+        conn = get_db_connection()
+        form = conn.execute('SELECT * FROM forms WHERE name = ?', (form_name,)).fetchone()
+        conn.close()
+        
+        if not form:
+            return jsonify({
+                'success': False,
+                'error': 'Formulaire non trouvé'
+            }), 404
+        
+        # Récupérer les entrées
+        db_path = os.path.join(DATABASE_DIR, f'{form_name}.db')
+        entries = get_form_entries(db_path)
+        
+        # Convertir en liste de dictionnaires
+        entries_list = []
+        for entry in entries:
+            entry_dict = dict(entry)
+            entries_list.append(entry_dict)
+        
+        return jsonify({
+            'success': True,
+            'data': entries_list,
+            'count': len(entries_list),
+            'form_name': form_name
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/forms/<form_name>/entries/<int:entry_id>', methods=['GET'])
+def api_get_entry(form_name, entry_id):
+    """GET /api/forms/{form_name}/entries/{id} - Récupérer une entrée spécifique"""
+    try:
+        # Vérifier que le formulaire existe
+        conn = get_db_connection()
+        form = conn.execute('SELECT * FROM forms WHERE name = ?', (form_name,)).fetchone()
+        conn.close()
+        
+        if not form:
+            return jsonify({
+                'success': False,
+                'error': 'Formulaire non trouvé'
+            }), 404
+        
+        # Récupérer l'entrée
+        db_path = os.path.join(DATABASE_DIR, f'{form_name}.db')
+        entry = get_single_entry(db_path, entry_id)
+        
+        if not entry:
+            return jsonify({
+                'success': False,
+                'error': 'Entrée non trouvée'
+            }), 404
+        
+        return jsonify({
+            'success': True,
+            'data': dict(entry),
+            'form_name': form_name
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/forms/<form_name>/entries', methods=['POST'])
+def api_create_entry(form_name):
+    """POST /api/forms/{form_name}/entries - Créer une nouvelle entrée"""
+    try:
+        # Vérifier que le formulaire existe et récupérer le schéma
+        conn = get_db_connection()
+        form = conn.execute('SELECT * FROM forms WHERE name = ?', (form_name,)).fetchone()
+        conn.close()
+        
+        if not form:
+            return jsonify({
+                'success': False,
+                'error': 'Formulaire non trouvé'
+            }), 404
+        
+        fields = json.loads(form['fields'])
+        
+        # Récupérer les données JSON de la requête
+        if not request.is_json:
+            return jsonify({
+                'success': False,
+                'error': 'Content-Type doit être application/json'
+            }), 400
+        
+        data = request.get_json()
+        
+        # Valider les champs requis
+        errors = []
+        for field in fields:
+            if field['required'] and (field['name'] not in data or not data[field['name']]):
+                errors.append(f"Le champ '{field['label']}' est requis")
+        
+        if errors:
+            return jsonify({
+                'success': False,
+                'error': 'Données invalides',
+                'details': errors
+            }), 400
+        
+        # Sauvegarder l'entrée
+        db_path = os.path.join(DATABASE_DIR, f'{form_name}.db')
+        save_form_entry(db_path, fields, data)
+        
+        return jsonify({
+            'success': True,
+            'message': 'Entrée créée avec succès',
+            'form_name': form_name
+        }), 201
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/forms/<form_name>/entries/<int:entry_id>', methods=['PUT'])
+def api_update_entry(form_name, entry_id):
+    """PUT /api/forms/{form_name}/entries/{id} - Modifier une entrée"""
+    try:
+        # Vérifier que le formulaire existe et récupérer le schéma
+        conn = get_db_connection()
+        form = conn.execute('SELECT * FROM forms WHERE name = ?', (form_name,)).fetchone()
+        conn.close()
+        
+        if not form:
+            return jsonify({
+                'success': False,
+                'error': 'Formulaire non trouvé'
+            }), 404
+        
+        fields = json.loads(form['fields'])
+        
+        # Vérifier que l'entrée existe
+        db_path = os.path.join(DATABASE_DIR, f'{form_name}.db')
+        existing_entry = get_single_entry(db_path, entry_id)
+        
+        if not existing_entry:
+            return jsonify({
+                'success': False,
+                'error': 'Entrée non trouvée'
+            }), 404
+        
+        # Récupérer les données JSON de la requête
+        if not request.is_json:
+            return jsonify({
+                'success': False,
+                'error': 'Content-Type doit être application/json'
+            }), 400
+        
+        data = request.get_json()
+        
+        # Valider les champs requis
+        errors = []
+        for field in fields:
+            if field['required'] and (field['name'] not in data or not data[field['name']]):
+                errors.append(f"Le champ '{field['label']}' est requis")
+        
+        if errors:
+            return jsonify({
+                'success': False,
+                'error': 'Données invalides',
+                'details': errors
+            }), 400
+        
+        # Mettre à jour l'entrée
+        update_form_entry(db_path, fields, data, entry_id)
+        
+        return jsonify({
+            'success': True,
+            'message': 'Entrée modifiée avec succès',
+            'form_name': form_name,
+            'entry_id': entry_id
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/forms/<form_name>/entries/<int:entry_id>', methods=['DELETE'])
+def api_delete_entry(form_name, entry_id):
+    """DELETE /api/forms/{form_name}/entries/{id} - Supprimer une entrée"""
+    try:
+        # Vérifier que le formulaire existe
+        conn = get_db_connection()
+        form = conn.execute('SELECT * FROM forms WHERE name = ?', (form_name,)).fetchone()
+        conn.close()
+        
+        if not form:
+            return jsonify({
+                'success': False,
+                'error': 'Formulaire non trouvé'
+            }), 404
+        
+        # Vérifier que l'entrée existe et la supprimer
+        db_path = os.path.join(DATABASE_DIR, f'{form_name}.db')
+        existing_entry = get_single_entry(db_path, entry_id)
+        
+        if not existing_entry:
+            return jsonify({
+                'success': False,
+                'error': 'Entrée non trouvée'
+            }), 404
+        
+        delete_form_entry(db_path, entry_id)
+        
+        return jsonify({
+            'success': True,
+            'message': 'Entrée supprimée avec succès',
+            'form_name': form_name,
+            'entry_id': entry_id
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+# ===== API DOCUMENTATION ENDPOINT =====
+
+@app.route('/form/<form_name>/integration', methods=['GET'])
+def form_integration(form_name):
+    """Page d'intégration API spécifique à un formulaire"""
+    # Récupérer les informations du formulaire
+    conn = get_db_connection()
+    form_info = conn.execute(
+        'SELECT * FROM forms WHERE name = ?', (form_name,)
+    ).fetchone()
+    
+    if not form_info:
+        flash('Formulaire non trouvé', 'error')
+        return redirect(url_for('index'))
+    
+    # Parser les champs
+    try:
+        fields = json.loads(form_info['fields'])
+    except:
+        flash('Erreur dans la configuration du formulaire', 'error')
+        return redirect(url_for('index'))
+    
+    # Récupération de tous les formulaires pour la sidebar
+    all_forms = conn.execute('SELECT * FROM forms ORDER BY created_at DESC').fetchall()
+    conn.close()
+    
+    # Générer un exemple de données pour ce formulaire
+    example_data = {}
+    for field in fields:
+        if field['type'] == 'text':
+            example_data[field['name']] = f"Exemple {field['label'].lower()}"
+        elif field['type'] == 'email':
+            example_data[field['name']] = "exemple@domain.com"
+        elif field['type'] == 'number':
+            example_data[field['name']] = 25
+        elif field['type'] == 'date':
+            example_data[field['name']] = "2024-01-15"
+        elif field['type'] == 'textarea':
+            example_data[field['name']] = f"Contenu exemple pour {field['label'].lower()}"
+        else:
+            example_data[field['name']] = f"Valeur {field['label'].lower()}"
+    
+    return render_template('integration.html', 
+                         form_info=form_info, 
+                         fields=fields,
+                         forms=all_forms,
+                         current_form=form_name,
+                         example_data=example_data,
+                         base_url=request.host_url.rstrip('/'))
+
+@app.route('/api/docs', methods=['GET'])
+def api_documentation():
+    """Documentation de l'API REST"""
+    docs = {
+        'title': 'FormCraft API REST',
+        'version': '1.0.0',
+        'description': 'API REST pour gérer les formulaires dynamiques et leurs données',
+        'base_url': request.host_url + 'api',
+        'endpoints': {
+            'forms': {
+                'GET /api/forms': {
+                    'description': 'Liste de tous les formulaires',
+                    'response': 'JSON avec liste des formulaires'
+                },
+                'GET /api/forms/{form_name}/schema': {
+                    'description': 'Schéma d\'un formulaire spécifique',
+                    'response': 'JSON avec définition des champs'
+                }
+            },
+            'entries': {
+                'GET /api/forms/{form_name}/entries': {
+                    'description': 'Liste des entrées d\'un formulaire',
+                    'response': 'JSON avec liste des entrées'
+                },
+                'POST /api/forms/{form_name}/entries': {
+                    'description': 'Créer une nouvelle entrée',
+                    'content_type': 'application/json',
+                    'response': 'JSON avec confirmation'
+                },
+                'GET /api/forms/{form_name}/entries/{id}': {
+                    'description': 'Récupérer une entrée spécifique',
+                    'response': 'JSON avec les données de l\'entrée'
+                },
+                'PUT /api/forms/{form_name}/entries/{id}': {
+                    'description': 'Modifier une entrée existante',
+                    'content_type': 'application/json',
+                    'response': 'JSON avec confirmation'
+                },
+                'DELETE /api/forms/{form_name}/entries/{id}': {
+                    'description': 'Supprimer une entrée',
+                    'response': 'JSON avec confirmation'
+                }
+            }
+        },
+        'examples': {
+            'create_entry': {
+                'url': '/api/forms/contact/entries',
+                'method': 'POST',
+                'headers': {'Content-Type': 'application/json'},
+                'body': {
+                    'nom': 'Dupont',
+                    'email': 'dupont@example.com',
+                    'message': 'Bonjour, j\'aimerais plus d\'informations'
+                }
+            },
+            'get_entries': {
+                'url': '/api/forms/contact/entries',
+                'method': 'GET',
+                'response_example': {
+                    'success': True,
+                    'data': [
+                        {
+                            'id': 1,
+                            'nom': 'Dupont',
+                            'email': 'dupont@example.com',
+                            'created_at': '2024-01-15 10:30:00'
+                        }
+                    ],
+                    'count': 1
+                }
+            }
+        }
+    }
+    
+    return jsonify(docs)
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
