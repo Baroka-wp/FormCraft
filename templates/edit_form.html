@@ -339,13 +339,19 @@
                                 <div class="field-row">
                                     <div class="field-col">
                                         <label>Type</label>
-                                        <select name="field_type[]" required>
+                                        <select name="field_type[]" required onchange="toggleOptionsInput(this)">
                                             <option value="text" {% if field.type == 'text' %}selected{% endif %}>Texte</option>
                                             <option value="email" {% if field.type == 'email' %}selected{% endif %}>Email</option>
                                             <option value="number" {% if field.type == 'number' %}selected{% endif %}>Nombre</option>
                                             <option value="tel" {% if field.type == 'tel' %}selected{% endif %}>Téléphone</option>
                                             <option value="date" {% if field.type == 'date' %}selected{% endif %}>Date</option>
                                             <option value="textarea" {% if field.type == 'textarea' %}selected{% endif %}>Texte long</option>
+                                            <option value="textarea_rich" {% if field.type == 'textarea_rich' %}selected{% endif %}>Texte riche (Rich Text)</option>
+                                            <option value="select" {% if field.type == 'select' %}selected{% endif %}>Sélection unique</option>
+                                            <option value="multiselect" {% if field.type == 'multiselect' %}selected{% endif %}>Sélection multiple</option>
+                                            <option value="radio" {% if field.type == 'radio' %}selected{% endif %}>Boutons radio</option>
+                                            <option value="checkbox" {% if field.type == 'checkbox' %}selected{% endif %}>Cases à cocher</option>
+                                            <option value="file" {% if field.type == 'file' %}selected{% endif %}>Upload de fichier</option>
                                         </select>
                                     </div>
                                     <div class="field-col">
@@ -356,6 +362,12 @@
                                             Champ obligatoire
                                         </label>
                                     </div>
+                                </div>
+                                <div class="options-container" style="{% if field.type not in ['select', 'multiselect', 'radio', 'checkbox'] %}display: none;{% endif %} margin-top: 1rem; padding: 1rem; background: #f8f9fa; border-radius: 0.5rem; border: 1px solid #dee2e6;">
+                                    <label style="font-weight: 600; margin-bottom: 0.5rem; display: block;">Options (une par ligne)</label>
+                                    <textarea name="field_options[]" placeholder="Option 1&#10;Option 2&#10;Option 3" 
+                                              style="width: 100%; min-height: 80px; padding: 0.5rem; border: 1px solid #ced4da; border-radius: 0.25rem; font-family: inherit; resize: vertical;">{% if field.options %}{{ field.options|join('\n') }}{% endif %}</textarea>
+                                    <small style="color: #6c757d; margin-top: 0.25rem; display: block;">Saisissez chaque option sur une nouvelle ligne</small>
                                 </div>
                             </div>
                         </div>
@@ -404,13 +416,19 @@
                         <div class="field-row">
                             <div class="field-col">
                                 <label>Type</label>
-                                <select name="field_type[]" required>
+                                <select name="field_type[]" required onchange="toggleOptionsInput(this)">
                                     <option value="text">Texte</option>
                                     <option value="email">Email</option>
                                     <option value="number">Nombre</option>
                                     <option value="tel">Téléphone</option>
                                     <option value="date">Date</option>
                                     <option value="textarea">Texte long</option>
+                                    <option value="textarea_rich">Texte riche (Rich Text)</option>
+                                    <option value="select">Sélection unique</option>
+                                    <option value="multiselect">Sélection multiple</option>
+                                    <option value="radio">Boutons radio</option>
+                                    <option value="checkbox">Cases à cocher</option>
+                                    <option value="file">Upload de fichier</option>
                                 </select>
                             </div>
                             <div class="field-col">
@@ -418,6 +436,12 @@
                                     <input type="checkbox" name="field_required[]" value="${fieldIndex}" checked>
                                     Champ obligatoire
                                 </label>
+                            </div>
+                            <div class="options-container" style="display: none; margin-top: 1rem; padding: 1rem; background: #f8f9fa; border-radius: 0.5rem; border: 1px solid #dee2e6;">
+                                <label style="font-weight: 600; margin-bottom: 0.5rem; display: block;">Options (une par ligne)</label>
+                                <textarea name="field_options[]" placeholder="Option 1&#10;Option 2&#10;Option 3" 
+                                          style="width: 100%; min-height: 80px; padding: 0.5rem; border: 1px solid #ced4da; border-radius: 0.25rem; font-family: inherit; resize: vertical;"></textarea>
+                                <small style="color: #6c757d; margin-top: 0.25rem; display: block;">Saisissez chaque option sur une nouvelle ligne</small>
                             </div>
                         </div>
                     </div>
@@ -476,6 +500,41 @@
                 }
             }
         });
+
+        // Fonction pour afficher/masquer les options selon le type de champ
+        function toggleOptionsInput(selectElement) {
+            const fieldItem = selectElement.closest('.field-item');
+            const optionsContainer = fieldItem.querySelector('.options-container');
+            const optionsTextarea = fieldItem.querySelector('textarea[name="field_options[]"]');
+            
+            // Types de champs qui nécessitent des options
+            const optionTypes = ['select', 'multiselect', 'radio', 'checkbox'];
+            
+            if (optionTypes.includes(selectElement.value)) {
+                optionsContainer.style.display = 'block';
+                optionsTextarea.required = true;
+                
+                // Valeurs par défaut selon le type si le textarea est vide
+                if (!optionsTextarea.value) {
+                    switch(selectElement.value) {
+                        case 'select':
+                        case 'radio':
+                            optionsTextarea.value = 'Option 1\nOption 2\nOption 3';
+                            break;
+                        case 'multiselect':
+                        case 'checkbox':
+                            optionsTextarea.value = 'Choix 1\nChoix 2\nChoix 3\nChoix 4';
+                            break;
+                    }
+                }
+            } else {
+                optionsContainer.style.display = 'none';
+                optionsTextarea.required = false;
+                if (selectElement.value !== selectElement.dataset.originalValue) {
+                    optionsTextarea.value = '';
+                }
+            }
+        }
 
         // Initialiser les boutons de suppression
         updateRemoveButtons();

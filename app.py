@@ -1,13 +1,66 @@
-from flask import Flask, request, render_template, redirect, url_for, flash, jsonify
+from flask import Flask, request, render_template, redirect, url_for, flash, jsonify, send_from_directory
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
+from werkzeug.utils import secure_filename
+from werkzeug.security import generate_password_hash, check_password_hash
 import sqlite3
 import os
 import json
 import secrets
-from werkzeug.security import generate_password_hash, check_password_hash
+import uuid
+from datetime import datetime
 
 app = Flask(__name__)
 app.secret_key = 'votre_clé_secrète_ici'  # Changez ceci en production
+
+# Filtres Jinja2 personnalisés
+@app.template_filter('display_file_info')
+def display_file_info(file_data):
+    """Affiche les informations d'un fichier uploadé"""
+    if not file_data:
+        return "Aucun fichier"
+    
+    try:
+        file_info = json.loads(file_data)
+        original_name = file_info.get('original_name', 'Fichier inconnu')
+        file_size = file_info.get('file_size', 0)
+        stored_name = file_info.get('stored_name', '')
+        
+        # Formatage de la taille du fichier
+        if file_size < 1024:
+            size_str = f"{file_size} B"
+        elif file_size < 1024 * 1024:
+            size_str = f"{file_size / 1024:.1f} KB"
+        else:
+            size_str = f"{file_size / (1024 * 1024):.1f} MB"
+        
+        return f'<a href="/uploads/{stored_name}" target="_blank" title="Télécharger {original_name}">{original_name}</a> ({size_str})'
+    except:
+        return file_data  # Fallback pour les anciens formats
+
+@app.template_filter('from_json')
+def from_json_filter(json_str):
+    """Convertit une chaîne JSON en liste Python"""
+    try:
+        return json.loads(json_str) if json_str else []
+    except:
+        return []
+
+# Configuration pour l'upload de fichiers
+UPLOAD_FOLDER = 'uploads'
+MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max
+ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'doc', 'docx', 'xls', 'xlsx', 'zip'}
+
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['MAX_CONTENT_LENGTH'] = MAX_CONTENT_LENGTH
+
+# Créer le dossier uploads s'il n'existe pas
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+
+def allowed_file(filename):
+    """Vérifier si le fichier a une extension autorisée"""
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # Configuration Flask-Login
 login_manager = LoginManager()
@@ -142,6 +195,12 @@ def logout():
     flash(f'Déconnexion réussie ! À bientôt {username} !', 'success')
     return redirect(url_for('login'))
 
+@app.route('/uploads/<filename>')
+@login_required
+def uploaded_file(filename):
+    """Route pour servir les fichiers uploadés"""
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
 # Configuration de la base de données
 import os
 DATABASE_DIR = 'databases'
@@ -206,12 +265,16 @@ def create_custom_form_database(db_path, fields):
         field_type = field['type']
         
         # Mapping des types HTML vers SQLite
-        if field_type in ['text', 'email', 'tel', 'textarea']:
+        if field_type in ['text', 'email', 'tel', 'textarea', 'textarea_rich', 'select', 'radio']:
             sql_type = 'TEXT'
         elif field_type == 'number':
             sql_type = 'INTEGER'
         elif field_type == 'date':
             sql_type = 'DATE'
+        elif field_type in ['multiselect', 'checkbox']:
+            sql_type = 'TEXT'  # Stocké en JSON pour les sélections multiples
+        elif field_type == 'file':
+            sql_type = 'TEXT'  # Stocké le chemin/nom du fichier
         else:
             sql_type = 'TEXT'
         
@@ -392,6 +455,7 @@ def create_form():
         field_labels = request.form.getlist('field_label[]')
         field_types = request.form.getlist('field_type[]')
         field_required = request.form.getlist('field_required[]')
+        field_options = request.form.getlist('field_options[]')
         
         # Validation
         if not form_name or not form_title:
@@ -403,12 +467,24 @@ def create_form():
             fields = []
             for i, name in enumerate(field_names):
                 if name and i < len(field_labels) and i < len(field_types):
-                    fields.append({
+                    field_data = {
                         'name': name.strip(),
                         'label': field_labels[i].strip(),
                         'type': field_types[i],
                         'required': str(i) in field_required
-                    })
+                    }
+                    
+                    # Ajouter les options pour les types qui en ont besoin
+                    if field_types[i] in ['select', 'multiselect', 'radio', 'checkbox'] and i < len(field_options):
+                        options_text = field_options[i].strip()
+                        if options_text:
+                            # Diviser les options par ligne et nettoyer
+                            options = [opt.strip() for opt in options_text.split('\n') if opt.strip()]
+                            field_data['options'] = options
+                        else:
+                            field_data['options'] = []
+                    
+                    fields.append(field_data)
             
             if not fields:
                 flash('Aucun champ valide défini', 'error')
@@ -477,24 +553,68 @@ def dynamic_form(form_name):
         # Validation et récupération des données
         for field in fields:
             field_name = field['name']
-            field_value = request.form.get(field_name, '').strip()
             
-            # Validation des champs requis
-            if field['required'] and not field_value:
-                errors.append(f"Le champ '{field['label']}' est requis")
-                continue
-            
-            # Validation spécifique par type
-            if field_value:  # Seulement si la valeur n'est pas vide
-                if field['type'] == 'email' and '@' not in field_value:
-                    errors.append(f"'{field['label']}' doit être un email valide")
-                elif field['type'] == 'number':
+            # Traitement spécial pour les champs à valeurs multiples
+            if field['type'] in ['multiselect', 'checkbox']:
+                field_values = request.form.getlist(f"{field_name}[]")
+                if field['required'] and not field_values:
+                    errors.append(f"Le champ '{field['label']}' est requis")
+                    continue
+                # Stocker en JSON pour les valeurs multiples
+                form_data[field_name] = json.dumps(field_values) if field_values else ''
+            elif field['type'] == 'file':
+                # Traitement des fichiers
+                uploaded_file = request.files.get(field_name)
+                if field['required'] and (not uploaded_file or not uploaded_file.filename):
+                    errors.append(f"Le champ '{field['label']}' est requis")
+                    continue
+                
+                if uploaded_file and uploaded_file.filename:
+                    # Vérifier l'extension du fichier
+                    if not allowed_file(uploaded_file.filename):
+                        errors.append(f"Type de fichier non autorisé pour '{field['label']}'. Extensions autorisées : {', '.join(ALLOWED_EXTENSIONS)}")
+                        continue
+                    
+                    # Générer un nom de fichier unique
+                    file_extension = uploaded_file.filename.rsplit('.', 1)[1].lower()
+                    unique_filename = f"{uuid.uuid4().hex}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{file_extension}"
+                    file_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
+                    
                     try:
-                        field_value = int(field_value)
-                    except ValueError:
-                        errors.append(f"'{field['label']}' doit être un nombre")
-            
-            form_data[field_name] = field_value
+                        # Sauvegarder le fichier
+                        uploaded_file.save(file_path)
+                        # Stocker les informations du fichier en JSON
+                        file_info = {
+                            'original_name': uploaded_file.filename,
+                            'stored_name': unique_filename,
+                            'upload_date': datetime.now().isoformat(),
+                            'file_size': os.path.getsize(file_path)
+                        }
+                        form_data[field_name] = json.dumps(file_info)
+                    except Exception as e:
+                        errors.append(f"Erreur lors de l'upload du fichier '{field['label']}': {str(e)}")
+                        continue
+                else:
+                    form_data[field_name] = ''
+            else:
+                field_value = request.form.get(field_name, '').strip()
+                
+                # Validation des champs requis
+                if field['required'] and not field_value:
+                    errors.append(f"Le champ '{field['label']}' est requis")
+                    continue
+                
+                # Validation spécifique par type
+                if field_value:  # Seulement si la valeur n'est pas vide
+                    if field['type'] == 'email' and '@' not in field_value:
+                        errors.append(f"'{field['label']}' doit être un email valide")
+                    elif field['type'] == 'number':
+                        try:
+                            field_value = int(field_value)
+                        except ValueError:
+                            errors.append(f"'{field['label']}' doit être un nombre")
+                
+                form_data[field_name] = field_value
         
         if errors:
             for error in errors:
@@ -595,6 +715,7 @@ def edit_form(form_name):
         field_labels = request.form.getlist('field_label[]')
         field_types = request.form.getlist('field_type[]')
         field_required = request.form.getlist('field_required[]')
+        field_options = request.form.getlist('field_options[]')
         
         # Validation
         if not new_form_title:
@@ -606,12 +727,24 @@ def edit_form(form_name):
             new_fields = []
             for i, name in enumerate(field_names):
                 if name and i < len(field_labels) and i < len(field_types):
-                    new_fields.append({
+                    field_data = {
                         'name': name.strip(),
                         'label': field_labels[i].strip(),
                         'type': field_types[i],
                         'required': str(i) in field_required
-                    })
+                    }
+                    
+                    # Ajouter les options pour les types qui en ont besoin
+                    if field_types[i] in ['select', 'multiselect', 'radio', 'checkbox'] and i < len(field_options):
+                        options_text = field_options[i].strip()
+                        if options_text:
+                            # Diviser les options par ligne et nettoyer
+                            options = [opt.strip() for opt in options_text.split('\n') if opt.strip()]
+                            field_data['options'] = options
+                        else:
+                            field_data['options'] = []
+                    
+                    new_fields.append(field_data)
             
             if not new_fields:
                 flash('Aucun champ valide défini', 'error')

@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ form_info.title }} - FormCraft</title>
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
     <style>
         /* File: dynamic_form.html */
         /* Purpose: Interface style japonais pour formulaires dynamiques */
@@ -652,11 +654,40 @@
         }
 
         .form-group input:focus,
-        .form-group textarea:focus {
+        .form-group textarea:focus,
+        .form-group select:focus {
             outline: none;
             border-color: var(--accent-primary);
             box-shadow: 0 0 0 3px rgba(74, 124, 89, 0.1);
             background: var(--cream);
+        }
+
+        /* Styles pour les champs radio et checkbox */
+        .form-group input[type="radio"]:hover + span,
+        .form-group input[type="checkbox"]:hover + span {
+            background-color: var(--sakura-light);
+        }
+
+        .form-group input[type="radio"]:checked + span,
+        .form-group input[type="checkbox"]:checked + span {
+            color: var(--accent-primary);
+            font-weight: 600;
+        }
+
+        /* Style pour les fichiers uploadés */
+        .file-upload-info {
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            background: var(--cream);
+            border-radius: 0.25rem;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        /* Améliorer l'affichage des sélections multiples */
+        select[multiple] option:checked {
+            background: var(--accent-primary);
+            color: white;
         }
 
         .form-group input::placeholder,
@@ -842,15 +873,59 @@
             to { opacity: 1; transform: scale(1); }
         }
 
-        .table-container {
-            background: var(--bg-secondary);
+        /* === AFFICHAGE DES DONNÉES MODERNE === */
+        .data-display-container {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
             border: 1px solid var(--border-color);
             border-radius: 1rem;
             overflow: hidden;
             box-shadow: var(--shadow-card);
         }
 
-        /* Table responsive avec actions visibles */
+        /* Barre de recherche et filtres */
+        .data-controls-bar {
+            padding: 1.5rem;
+            background: var(--bg-primary);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 200px;
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 2.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            background: white;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(74, 124, 89, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+
+        /* Wrapper du tableau pleine largeur */
         .table-wrapper {
             overflow-x: auto;
             scrollbar-width: thin;
@@ -858,107 +933,198 @@
         }
 
         .table-wrapper::-webkit-scrollbar {
-            height: 4px;
+            height: 6px;
         }
 
         .table-wrapper::-webkit-scrollbar-track {
-            background: transparent;
+            background: var(--bg-secondary);
+            border-radius: 3px;
         }
 
         .table-wrapper::-webkit-scrollbar-thumb {
             background: var(--accent-primary);
-            border-radius: 2px;
+            border-radius: 3px;
         }
 
-        .data-table {
+        .modern-table {
             width: 100%;
-            border-collapse: collapse;
-            min-width: 700px; /* Table minimum width pour inclure les actions */
+            border-collapse: separate;
+            border-spacing: 0;
         }
 
-        .data-table th {
+        .modern-table thead th {
             background: var(--bg-primary);
-            padding: 1rem 0.75rem;
+            padding: 1rem;
             text-align: left;
             font-weight: 600;
             color: var(--text-primary);
-            border-bottom: 1px solid var(--border-color);
+            border-bottom: 2px solid var(--accent-primary);
             font-size: 0.875rem;
             font-family: 'JetBrains Mono', monospace;
-            white-space: nowrap;
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
 
-        .data-table td {
-            padding: 1rem 0.75rem;
+        .modern-table tbody tr {
+            background: white;
+            transition: all 0.3s ease;
             border-bottom: 1px solid var(--border-color);
-            color: var(--text-secondary);
+        }
+
+        .modern-table tbody tr:hover {
+            background: var(--sakura-light);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .modern-table td {
+            padding: 1rem;
             font-size: 0.875rem;
-            max-width: 120px;
+            color: var(--text-secondary);
+            border-right: 1px solid var(--border-color);
+            max-width: 200px;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
         }
 
-        /* Colonne Actions - toujours visible */
-        .data-table th:last-child,
-        .data-table td:last-child {
-            width: 100px;
-            min-width: 100px;
-            max-width: 100px;
-            text-align: center;
-            white-space: nowrap;
+        .modern-table td:last-child {
+            border-right: none;
         }
 
-        .data-table tbody tr {
-            transition: all 0.3s ease;
+        /* Styles pour l'affichage des valeurs */
+        .field-value.file-link a {
+            color: var(--accent-primary);
+            text-decoration: none;
+            font-weight: 500;
         }
 
-        .data-table tbody tr:hover {
-            background: var(--sakura-light);
-            transform: scale(1.01);
+        .field-value.file-link a:hover {
+            text-decoration: underline;
         }
 
-        .action-buttons {
+        .field-value.multi-values {
             display: flex;
-            gap: 0.5rem;
-            justify-content: center;
-            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.25rem;
         }
 
-        .edit-entry-btn,
-        .delete-entry-btn {
-            background: none;
+        .value-tag {
+            background: var(--accent-primary);
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .action-btn {
+            padding: 0.5rem 1rem;
             border: none;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
             cursor: pointer;
-            padding: 0.5rem;
-            border-radius: 0.375rem;
-            font-size: 1rem;
             transition: all 0.3s ease;
             display: flex;
             align-items: center;
-            justify-content: center;
-            min-width: 2rem;
-            height: 2rem;
+            gap: 0.5rem;
         }
 
-        .edit-entry-btn {
-            color: var(--success-color);
+        .action-btn.edit {
             background: rgba(74, 124, 89, 0.1);
+            color: var(--success-color);
+            border: 1px solid rgba(74, 124, 89, 0.3);
         }
 
-        .edit-entry-btn:hover {
+        .action-btn.edit:hover {
             background: rgba(74, 124, 89, 0.2);
-            transform: scale(1.1);
+            transform: translateY(-1px);
         }
 
-        .delete-entry-btn {
-            color: var(--danger-color);
+        .action-btn.delete {
             background: rgba(211, 47, 47, 0.1);
+            color: var(--danger-color);
+            border: 1px solid rgba(211, 47, 47, 0.3);
         }
 
-        .delete-entry-btn:hover {
+        .action-btn.delete:hover {
             background: rgba(211, 47, 47, 0.2);
-            transform: scale(1.1);
+            transform: translateY(-1px);
+        }
+
+        .action-btn.view {
+            background: rgba(255, 152, 0, 0.1);
+            color: var(--warning-color);
+            border: 1px solid rgba(255, 152, 0, 0.3);
+        }
+
+        .action-btn.view:hover {
+            background: rgba(255, 152, 0, 0.2);
+            transform: translateY(-1px);
+        }
+
+        /* États d'affichage */
+        .no-data-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: white;
+        }
+
+        .no-data-icon {
+            font-size: 4rem;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+
+        .no-data-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .no-data-description {
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+
+        /* Modal de visualisation détaillée */
+        .entry-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            z-index: 10000;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .entry-modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .entry-modal-content {
+            background: var(--bg-card);
+            border-radius: 1rem;
+            padding: 2rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-card);
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
         }
 
         .no-data {
@@ -968,7 +1134,7 @@
             font-style: italic;
         }
 
-        /* Responsive Design */
+        /* Responsive Design Moderne */
         @media (max-width: 1200px) {
             .container {
                 grid-template-columns: 250px 1fr 1fr;
@@ -1039,35 +1205,26 @@
                 align-items: flex-start;
             }
 
-            /* Table responsive mobile avec actions */
-            .data-table {
-                min-width: 550px; /* Reduced but keeps actions visible */
+            /* Optimiser le tableau sur tablette */
+            .data-controls-bar {
+                padding: 1rem;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 1rem;
             }
 
-            .data-table th,
-            .data-table td {
+            .search-box {
+                min-width: auto;
+            }
+
+            .modern-table td {
                 padding: 0.75rem 0.5rem;
-                font-size: 0.75rem;
+                font-size: 0.8rem;
             }
 
-            .data-table td {
-                max-width: 100px;
-            }
-
-            /* Actions column stays same size on mobile */
-            .data-table th:last-child,
-            .data-table td:last-child {
-                width: 80px;
-                min-width: 80px;
-                max-width: 80px;
-            }
-
-            .edit-entry-btn,
-            .delete-entry-btn {
-                font-size: 0.9rem;
-                min-width: 1.8rem;
-                height: 1.8rem;
-                padding: 0.3rem;
+            .modern-table th {
+                padding: 0.75rem 0.5rem;
+                font-size: 0.8rem;
             }
         }
 
@@ -1100,55 +1257,42 @@
                 font-size: 0.7rem;
             }
 
-            /* Mobile table ultra-responsive avec actions toujours visibles */
-            .data-table {
-                min-width: 480px;
-            }
-
-            .data-table th,
-            .data-table td {
+            /* Tableau optimisé mobile */
+            .modern-table td {
                 padding: 0.5rem 0.25rem;
-                font-size: 0.7rem;
+                font-size: 0.75rem;
+                max-width: 120px;
             }
 
-            .data-table td {
-                max-width: 80px;
+            .modern-table th {
+                padding: 0.5rem 0.25rem;
+                font-size: 0.75rem;
             }
 
-            /* Actions column - compact but visible */
-            .data-table th:last-child,
-            .data-table td:last-child {
-                width: 70px;
-                min-width: 70px;
-                max-width: 70px;
+            .action-btn {
+                padding: 0.3rem 0.6rem;
+                font-size: 0.75rem;
             }
 
-            .action-buttons {
-                gap: 0.25rem;
+            .data-controls-bar {
+                padding: 0.75rem;
             }
 
-            .edit-entry-btn,
-            .delete-entry-btn {
-                font-size: 0.8rem;
-                min-width: 1.5rem;
-                height: 1.5rem;
-                padding: 0.2rem;
+            .search-input {
+                padding: 0.6rem 0.8rem 0.6rem 2.2rem;
+                font-size: 0.85rem;
             }
 
-            /* Mobile scroll indicator */
+        }
+
+        @media (max-width: 480px) {
             .table-wrapper {
-                position: relative;
+                padding: 0.5rem;
             }
 
-            .table-wrapper::after {
-                content: '← Glissez pour voir plus →';
-                position: absolute;
-                bottom: -1.5rem;
-                left: 50%;
-                transform: translateX(-50%);
-                font-size: 0.7rem;
-                color: var(--text-muted);
-                font-style: italic;
+            .entry-modal-content {
+                padding: 1rem;
+                width: 95%;
             }
         }
     </style>
@@ -1252,7 +1396,7 @@
             {% endif %}
 
             <div class="dynamic-form">
-                <form method="POST" action="/form/{{ current_form }}">
+                <form method="POST" action="/form/{{ current_form }}" enctype="multipart/form-data">
                     {% for field in fields %}
                         <div class="form-group">
                             <label for="{{ field.name }}">
@@ -1265,6 +1409,73 @@
                                         name="{{ field.name }}" 
                                         placeholder="Saisissez {{ field.label|lower }}"
                                         {% if field.required %}required{% endif %}></textarea>
+                            {% elif field.type == 'textarea_rich' %}
+                                <div id="{{ field.name }}_editor" class="rich-text-editor-container" 
+                                     style="background: white; border: 1px solid var(--border-color); border-radius: 0.5rem; min-height: 150px;"></div>
+                                <input type="hidden" id="{{ field.name }}" name="{{ field.name }}" 
+                                       {% if field.required %}required{% endif %}
+                                       class="rich-text-content">
+                                <small style="color: var(--text-muted); margin-top: 0.25rem; display: block;">Utilisez la barre d'outils pour formater votre texte</small>
+                            {% elif field.type == 'select' %}
+                                <select id="{{ field.name }}" 
+                                        name="{{ field.name }}" 
+                                        {% if field.required %}required{% endif %}
+                                        style="width: 100%; padding: 0.75rem 1rem; background: white; border: 1px solid var(--border-color); border-radius: 0.5rem; color: var(--text-primary); font-size: 1rem; transition: all 0.3s ease; font-family: inherit;">
+                                    <option value="">-- Sélectionnez {{ field.label|lower }} --</option>
+                                    {% if field.options %}
+                                        {% for option in field.options %}
+                                            <option value="{{ option }}">{{ option }}</option>
+                                        {% endfor %}
+                                    {% endif %}
+                                </select>
+                            {% elif field.type == 'multiselect' %}
+                                <select id="{{ field.name }}" 
+                                        name="{{ field.name }}[]" 
+                                        multiple
+                                        {% if field.required %}required{% endif %}
+                                        style="width: 100%; min-height: 120px; padding: 0.75rem 1rem; background: white; border: 1px solid var(--border-color); border-radius: 0.5rem; color: var(--text-primary); font-size: 1rem; transition: all 0.3s ease; font-family: inherit;">
+                                    {% if field.options %}
+                                        {% for option in field.options %}
+                                            <option value="{{ option }}">{{ option }}</option>
+                                        {% endfor %}
+                                    {% endif %}
+                                </select>
+                                <small style="color: var(--text-muted); margin-top: 0.25rem; display: block;">Maintenez Ctrl (Cmd sur Mac) pour sélectionner plusieurs options</small>
+                            {% elif field.type == 'radio' %}
+                                <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem;">
+                                    {% if field.options %}
+                                        {% for option in field.options %}
+                                            <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: 400; cursor: pointer; padding: 0.5rem; border-radius: 0.25rem; transition: background 0.2s ease;">
+                                                <input type="radio" 
+                                                       name="{{ field.name }}" 
+                                                       value="{{ option }}"
+                                                       {% if field.required and loop.first %}required{% endif %}
+                                                       style="margin: 0;">
+                                                <span>{{ option }}</span>
+                                            </label>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                            {% elif field.type == 'checkbox' %}
+                                <div style="display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem;">
+                                    {% if field.options %}
+                                        {% for option in field.options %}
+                                            <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: 400; cursor: pointer; padding: 0.5rem; border-radius: 0.25rem; transition: background 0.2s ease;">
+                                                <input type="checkbox" 
+                                                       name="{{ field.name }}[]" 
+                                                       value="{{ option }}"
+                                                       style="margin: 0;">
+                                                <span>{{ option }}</span>
+                                            </label>
+                                        {% endfor %}
+                                    {% endif %}
+                                </div>
+                            {% elif field.type == 'file' %}
+                                <input type="file" 
+                                       id="{{ field.name }}" 
+                                       name="{{ field.name }}" 
+                                       {% if field.required %}required{% endif %}
+                                       style="width: 100%; padding: 0.75rem 1rem; background: white; border: 1px solid var(--border-color); border-radius: 0.5rem; color: var(--text-primary); font-size: 1rem; transition: all 0.3s ease; font-family: inherit;">
                             {% else %}
                                 <input type="{{ field.type }}" 
                                        id="{{ field.name }}" 
@@ -1307,34 +1518,75 @@
                 </div>
             </div>
 
-            {% if entries %}
-                <div class="table-container">
+            <div class="data-display-container">
+                <!-- Barre de contrôles avec recherche et toggle de vue -->
+                <div class="data-controls-bar">
+                    <div class="search-box">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" class="search-input" id="searchInput" 
+                               placeholder="Rechercher dans les données..." 
+                               oninput="filterEntries()">
+                    </div>
+                </div>
+
+                {% if entries %}
+                    <!-- Tableau pleine largeur -->
                     <div class="table-wrapper">
-                        <table class="data-table">
+                        <table class="modern-table">
                             <thead>
                                 <tr>
-                                    <th>ID</th>
+                                    <th style="width: 80px;">ID</th>
                                     {% for field in fields %}
                                         <th>{{ field.label }}</th>
                                     {% endfor %}
-                                    <th>Date</th>
-                                    <th>Actions</th>
+                                    <th style="width: 140px;">Date</th>
+                                    <th style="text-align: center; width: 140px;">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody>
+                            <tbody id="tableBody">
                                 {% for entry in entries %}
-                                    <tr>
-                                        <td><strong>#{{ entry.id }}</strong></td>
-                                        {% for field in fields %}
-                                            <td title="{{ entry[field.name] }}">{{ entry[field.name] }}</td>
-                                        {% endfor %}
-                                        <td>{{ entry.created_at[:16] if entry.created_at else 'N/A' }}</td>
+                                    <tr class="entry-row" data-entry-id="{{ entry.id }}">
                                         <td>
-                                            <div class="action-buttons">
+                                            <span style="font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--accent-primary);">
+                                                #{{ entry.id }}
+                                            </span>
+                                        </td>
+                                        {% for field in fields %}
+                                            <td title="{{ entry[field.name] }}">
+                                                {% if field.type == 'file' %}
+                                                    <div class="field-value file-link">
+                                                        {{ entry[field.name]|display_file_info|safe }}
+                                                    </div>
+                                                {% elif field.type in ['multiselect', 'checkbox'] %}
+                                                    {% set values = entry[field.name]|from_json if entry[field.name] else [] %}
+                                                    <div class="field-value multi-values">
+                                                        {% for value in values %}
+                                                            <span class="value-tag">{{ value }}</span>
+                                                        {% endfor %}
+                                                        {% if not values %}<span style="color: var(--text-muted);">-</span>{% endif %}
+                                                    </div>
+                                                {% else %}
+                                                    {{ entry[field.name] if entry[field.name] else '-' }}
+                                                {% endif %}
+                                            </td>
+                                        {% endfor %}
+                                        <td style="color: var(--text-muted); font-size: 0.8rem;">
+                                            {{ entry.created_at[:16] if entry.created_at else 'N/A' }}
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <div style="display: flex; gap: 0.25rem; justify-content: center;">
+                                                <button onclick="viewEntry({{ entry.id }})" 
+                                                        class="action-btn view" title="Voir les détails">
+                                                    👁️
+                                                </button>
                                                 <button onclick="editEntry({{ entry.id }})" 
-                                                        class="edit-entry-btn" title="Modifier">✏️</button>
+                                                        class="action-btn edit" title="Modifier">
+                                                    ✏️
+                                                </button>
                                                 <button onclick="deleteEntry({{ entry.id }})" 
-                                                        class="delete-entry-btn" title="Supprimer">🗑️</button>
+                                                        class="action-btn delete" title="Supprimer">
+                                                    🗑️
+                                                </button>
                                             </div>
                                         </td>
                                     </tr>
@@ -1342,13 +1594,16 @@
                             </tbody>
                         </table>
                     </div>
-                </div>
-            {% else %}
-                <div class="no-data">
-                    Aucune donnée enregistrée.<br>
-                    Utilisez le formulaire pour ajouter la première entrée.
-                </div>
-            {% endif %}
+                {% else %}
+                    <div class="no-data-state">
+                        <div class="no-data-icon">📄</div>
+                        <div class="no-data-title">Aucune donnée enregistrée</div>
+                        <div class="no-data-description">
+                            Utilisez le formulaire pour ajouter la première entrée à cette collection.
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
         </div>
     </div>
 
@@ -1518,14 +1773,57 @@
             }
         });
 
+        // Fonction pour initialiser les éditeurs rich text
+        function initializeRichTextEditors() {
+            document.querySelectorAll('.rich-text-editor-container').forEach(container => {
+                const fieldName = container.id.replace('_editor', '');
+                const hiddenInput = document.getElementById(fieldName);
+                
+                if (container && hiddenInput) {
+                    const quill = new Quill(container, {
+                        theme: 'snow',
+                        placeholder: 'Saisissez votre texte ici...',
+                        modules: {
+                            toolbar: [
+                                [{ 'header': [1, 2, 3, false] }],
+                                ['bold', 'italic', 'underline', 'strike'],
+                                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                                [{ 'color': [] }, { 'background': [] }],
+                                ['link'],
+                                ['clean']
+                            ]
+                        }
+                    });
+                    
+                    // Stocker la référence à l'éditeur
+                    richTextEditors[fieldName] = quill;
+                    
+                    // Synchroniser le contenu avec le champ caché
+                    quill.on('text-change', function() {
+                        hiddenInput.value = quill.root.innerHTML;
+                        // Validation pour les champs requis
+                        if (hiddenInput.hasAttribute('required')) {
+                            hiddenInput.setCustomValidity(
+                                quill.getText().trim().length === 0 ? 'Ce champ est requis' : ''
+                            );
+                        }
+                    });
+                }
+            });
+        }
+
         // Variables globales pour le refresh automatique
         let autoRefreshEnabled = true;
         let autoRefreshInterval = null;
         let currentEntries = [];
         let isDataVisible = false;
+        let richTextEditors = {};
 
         // Initialiser les données actuelles
         document.addEventListener('DOMContentLoaded', function() {
+            // Initialiser les éditeurs rich text
+            initializeRichTextEditors();
+            
             // Récupérer les données initiales
             const tableRows = document.querySelectorAll('.data-table tbody tr');
             currentEntries = Array.from(tableRows).map(row => {
@@ -1689,9 +1987,7 @@
             rowHTML += `</td>`;
             
             // Ajouter les autres colonnes dynamiquement
-            {% for field in fields %}
-                rowHTML += `<td>${entry['{{ field.name }}'] || ''}</td>`;
-            {% endfor %}
+            // Les champs seront ajoutés côté serveur lors du refresh
             
             rowHTML += `<td>${entry.created_at ? entry.created_at.split(' ')[0] : ''}</td>`;
             rowHTML += `
@@ -1708,6 +2004,143 @@
             row.innerHTML = rowHTML;
             return row;
         }
+
+        // === NOUVELLES FONCTIONNALITÉS D'AFFICHAGE DES DONNÉES ===
+
+
+
+        // Fonction de recherche/filtrage
+        function filterEntries() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const tableRows = document.querySelectorAll('.entry-row');
+
+            // Filtrer les lignes du tableau
+            tableRows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    row.style.display = '';
+                    row.style.animation = 'fadeIn 0.3s ease';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            // Mettre à jour le compteur de résultats
+            updateResultsCount();
+        }
+
+        // Mettre à jour le compteur de résultats
+        function updateResultsCount() {
+            const searchTerm = document.getElementById('searchInput').value;
+            const visibleRows = document.querySelectorAll('.entry-row[style=""], .entry-row:not([style])');
+            
+            const entriesCount = document.getElementById('entriesCount');
+            const entriesPlural = document.getElementById('entriesPlural');
+            
+            const count = visibleRows.length;
+            
+            if (searchTerm) {
+                entriesCount.textContent = count;
+                entriesPlural.textContent = count !== 1 ? 's' : '';
+                entriesCount.parentElement.style.background = count > 0 ? 'var(--sakura-light)' : '#ffebee';
+                entriesCount.parentElement.style.color = count > 0 ? 'var(--success-color)' : 'var(--danger-color)';
+            } else {
+                // Restaurer le compteur original
+                const originalCount = document.querySelectorAll('.entry-row').length;
+                entriesCount.textContent = originalCount;
+                entriesPlural.textContent = originalCount !== 1 ? 's' : '';
+                entriesCount.parentElement.style.background = 'var(--sakura-light)';
+                entriesCount.parentElement.style.color = 'var(--text-muted)';
+            }
+        }
+
+        // Fonction pour visualiser une entrée en détail
+        function viewEntry(entryId) {
+            // Récupérer les données de l'entrée
+            const row = document.querySelector(`[data-entry-id="${entryId}"]`);
+            if (!row) return;
+
+            // Créer le modal de visualisation
+            const modal = document.createElement('div');
+            modal.className = 'entry-modal active';
+            modal.innerHTML = `
+                <div class="entry-modal-content">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid var(--accent-primary);">
+                        <h3 style="margin: 0; color: var(--accent-primary); font-family: 'JetBrains Mono', monospace;">
+                            📄 Entrée #${entryId}
+                        </h3>
+                        <button onclick="closeEntryModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted);">✕</button>
+                    </div>
+                    <div id="entryDetails"></div>
+                    <div style="display: flex; gap: 1rem; margin-top: 2rem; justify-content: flex-end;">
+                        <button onclick="editEntry(${entryId})" class="action-btn edit">
+                            ✏️ Modifier cette entrée
+                        </button>
+                        <button onclick="closeEntryModal()" class="action-btn view">
+                            ✕ Fermer
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            // Remplir les détails de l'entrée
+            const detailsContainer = modal.querySelector('#entryDetails');
+            const fields = {{ fields|tojson }};
+            
+            // Récupérer les données depuis la ligne du tableau
+            const entryData = {};
+            const cells = row.querySelectorAll('td');
+            fields.forEach((field, index) => {
+                const cell = cells[index + 1]; // +1 pour ignorer la colonne ID
+                if (cell) {
+                    entryData[field.name] = cell.textContent.trim();
+                }
+            });
+
+            // Créer l'affichage des détails
+            let detailsHTML = '<div style="display: grid; gap: 1rem;">';
+            fields.forEach(field => {
+                const value = entryData[field.name] || 'Non renseigné';
+                detailsHTML += `
+                    <div style="padding: 1rem; background: var(--bg-secondary); border-radius: 0.5rem; border-left: 4px solid var(--accent-primary);">
+                        <div style="font-weight: 600; color: var(--text-primary); margin-bottom: 0.5rem; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em;">
+                            ${field.label}
+                        </div>
+                        <div style="color: var(--text-secondary); font-size: 1rem; word-break: break-word;">
+                            ${value === 'Non renseigné' ? '<em style="color: var(--text-muted);">Non renseigné</em>' : value}
+                        </div>
+                    </div>
+                `;
+            });
+            detailsHTML += '</div>';
+            detailsContainer.innerHTML = detailsHTML;
+
+            document.body.appendChild(modal);
+        }
+
+        // Fermer le modal de visualisation
+        function closeEntryModal() {
+            const modal = document.querySelector('.entry-modal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+
+        // Fermer le modal en cliquant en dehors
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('entry-modal')) {
+                closeEntryModal();
+            }
+        });
+
+        // Raccourci clavier pour fermer le modal
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeEntryModal();
+            }
+        });
+
+
     </script>
 </body>
 </html> 
