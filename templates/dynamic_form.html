@@ -57,6 +57,16 @@
             gap: 0;
             position: relative;
             margin-left: 280px;
+            transition: grid-template-columns 0.3s ease;
+        }
+
+        /* Quand les données sont masquées, le formulaire prend toute la largeur */
+        .container.data-hidden {
+            grid-template-columns: 1fr;
+        }
+
+        .container.data-hidden .data-section {
+            display: none;
         }
 
         /* === SIDEBAR === */
@@ -710,10 +720,126 @@
             border-bottom: 1px solid var(--border-color);
         }
 
+        .data-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
         .data-count {
             font-size: 0.875rem;
             color: var(--text-muted);
             font-family: 'JetBrains Mono', monospace;
+            background: var(--sakura-light);
+            padding: 0.5rem 1rem;
+            border-radius: 1rem;
+            font-weight: 600;
+        }
+
+        .refresh-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .refresh-btn, .auto-refresh-btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .refresh-btn:hover {
+            background: var(--cream);
+            border-color: var(--accent-primary);
+            color: var(--accent-primary);
+            transform: scale(1.05);
+        }
+
+        .refresh-btn.spinning {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .auto-refresh-btn {
+            padding: 0.5rem 0.75rem;
+        }
+
+        .auto-refresh-btn.active {
+            background: var(--accent-primary);
+            color: white;
+            border-color: var(--accent-primary);
+        }
+
+        .auto-refresh-btn:hover {
+            background: var(--accent-secondary);
+            border-color: var(--accent-secondary);
+            color: white;
+        }
+
+        .refresh-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success-color);
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.inactive {
+            background: var(--text-muted);
+            animation: none;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        /* Indicateur de nouvelles données */
+        .new-entry {
+            animation: highlightNew 3s ease;
+        }
+
+        @keyframes highlightNew {
+            0% { background: rgba(74, 124, 89, 0.3); }
+            100% { background: transparent; }
+        }
+
+        .new-badge {
+            background: var(--accent-secondary);
+            color: white;
+            font-size: 0.625rem;
+            padding: 0.125rem 0.375rem;
+            border-radius: 0.25rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
         }
 
         .table-container {
@@ -850,7 +976,8 @@
         }
 
         @media (max-width: 968px) {
-            .container {
+            .container,
+            .container.data-hidden {
                 grid-template-columns: 1fr;
                 grid-template-rows: auto 1fr;
                 min-height: 100vh;
@@ -958,6 +1085,21 @@
                 font-size: 1.25rem;
             }
 
+            .data-controls {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.75rem;
+            }
+
+            .refresh-controls {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .refresh-status {
+                font-size: 0.7rem;
+            }
+
             /* Mobile table ultra-responsive avec actions toujours visibles */
             .data-table {
                 min-width: 480px;
@@ -1012,7 +1154,7 @@
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="container data-hidden">
         
         <!-- === SIDEBAR === -->
         <div class="sidebar">
@@ -1145,8 +1287,23 @@
         <div class="data-section hidden" id="dataSection">
             <div class="data-header">
                 <h2 class="section-title" style="margin: 0;">Données enregistrées</h2>
-                <div class="data-count">
-                    {{ entries|length }} entrée{% if entries|length != 1 %}s{% endif %}
+                <div class="data-controls">
+                    <div class="data-count">
+                        <span id="entriesCount">{{ entries|length }}</span> entrée<span id="entriesPlural">{% if entries|length != 1 %}s{% endif %}</span>
+                    </div>
+                    <div class="refresh-controls">
+                        <button id="refreshBtn" class="refresh-btn" onclick="refreshData()" title="Actualiser maintenant">
+                            <span>🔄</span>
+                        </button>
+                        <button id="autoRefreshBtn" class="auto-refresh-btn active" onclick="toggleAutoRefresh()" title="Refresh automatique">
+                            <span>🔄</span>
+                            <span class="auto-text">Auto</span>
+                        </button>
+                        <div class="refresh-status" id="refreshStatus">
+                            <span class="status-dot"></span>
+                            <span class="status-text">Actif</span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -1269,16 +1426,22 @@
 
         // Fonction pour toggle la vue des données
         function toggleDataView() {
+            const container = document.querySelector('.container');
             const dataSection = document.getElementById('dataSection');
             const toggleText = document.getElementById('dataToggleText');
             const dataBtn = document.querySelector('.data-btn');
             
             if (dataSection.classList.contains('hidden')) {
                 // Afficher les données
+                container.classList.remove('data-hidden');
                 dataSection.classList.remove('hidden');
                 dataSection.classList.add('show');
                 toggleText.textContent = 'Masquer les données';
                 dataBtn.classList.add('active');
+                isDataVisible = true;
+                
+                // Refresh immédiat des données quand on les affiche
+                refreshData(true);
                 
                 // Scroll vers la section données
                 setTimeout(() => {
@@ -1286,10 +1449,12 @@
                 }, 100);
             } else {
                 // Masquer les données
+                container.classList.add('data-hidden');
                 dataSection.classList.add('hidden');
                 dataSection.classList.remove('show');
                 toggleText.textContent = 'Voir les données';
                 dataBtn.classList.remove('active');
+                isDataVisible = false;
             }
         }
 
@@ -1353,8 +1518,25 @@
             }
         });
 
-        // Animations au chargement
+        // Variables globales pour le refresh automatique
+        let autoRefreshEnabled = true;
+        let autoRefreshInterval = null;
+        let currentEntries = [];
+        let isDataVisible = false;
+
+        // Initialiser les données actuelles
         document.addEventListener('DOMContentLoaded', function() {
+            // Récupérer les données initiales
+            const tableRows = document.querySelectorAll('.data-table tbody tr');
+            currentEntries = Array.from(tableRows).map(row => {
+                const firstCell = row.querySelector('td');
+                return firstCell ? firstCell.textContent.trim() : '';
+            });
+
+            // Démarrer le refresh automatique
+            startAutoRefresh();
+
+            // Animations au chargement
             const elements = document.querySelectorAll('.dynamic-form, .table-container, .stats-card');
             elements.forEach((element, index) => {
                 element.style.opacity = '0';
@@ -1366,6 +1548,166 @@
                 }, index * 100);
             });
         });
+
+        // Fonction pour démarrer le refresh automatique
+        function startAutoRefresh() {
+            if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+            
+            if (autoRefreshEnabled) {
+                autoRefreshInterval = setInterval(() => {
+                    // Ne faire le refresh que si les données sont visibles
+                    if (isDataVisible) {
+                        refreshData(false); // false = refresh silencieux
+                    }
+                }, 10000); // 10 secondes
+                
+                updateRefreshStatus(true);
+            }
+        }
+
+        // Fonction pour arrêter le refresh automatique
+        function stopAutoRefresh() {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+            }
+            updateRefreshStatus(false);
+        }
+
+        // Toggle du refresh automatique
+        function toggleAutoRefresh() {
+            autoRefreshEnabled = !autoRefreshEnabled;
+            const autoBtn = document.getElementById('autoRefreshBtn');
+            
+            if (autoRefreshEnabled) {
+                autoBtn.classList.add('active');
+                startAutoRefresh();
+            } else {
+                autoBtn.classList.remove('active');
+                stopAutoRefresh();
+            }
+        }
+
+        // Mettre à jour le statut visuel
+        function updateRefreshStatus(active) {
+            const statusDot = document.querySelector('.status-dot');
+            const statusText = document.querySelector('.status-text');
+            
+            if (active) {
+                statusDot.classList.remove('inactive');
+                statusText.textContent = 'Actif';
+            } else {
+                statusDot.classList.add('inactive');
+                statusText.textContent = 'Inactif';
+            }
+        }
+
+        // Fonction principale de refresh des données
+        async function refreshData(showSpinner = true) {
+            const refreshBtn = document.getElementById('refreshBtn');
+            
+            if (showSpinner) {
+                refreshBtn.classList.add('spinning');
+            }
+            
+            try {
+                const response = await fetch(`/api/forms/{{ current_form }}/entries`);
+                const data = await response.json();
+                
+                if (data.success && data.data) {
+                    updateEntriesTable(data.data, showSpinner);
+                }
+            } catch (error) {
+                console.error('Erreur lors du refresh:', error);
+            } finally {
+                if (showSpinner) {
+                    setTimeout(() => {
+                        refreshBtn.classList.remove('spinning');
+                    }, 500);
+                }
+            }
+        }
+
+        // Mettre à jour le tableau avec les nouvelles données
+        function updateEntriesTable(newEntries, showAnimation = false) {
+            const entriesCount = document.getElementById('entriesCount');
+            const entriesPlural = document.getElementById('entriesPlural');
+            const tableBody = document.querySelector('.data-table tbody');
+            
+            if (!tableBody) return;
+            
+            // Mettre à jour le compteur
+            entriesCount.textContent = newEntries.length;
+            entriesPlural.textContent = newEntries.length !== 1 ? 's' : '';
+            
+            // Identifier les nouvelles entrées
+            const newEntryIds = newEntries.map(entry => entry.id.toString());
+            const currentEntryIds = Array.from(tableBody.querySelectorAll('tr')).map(row => 
+                row.querySelector('td').textContent.trim()
+            );
+            
+            const hasNewEntries = newEntryIds.some(id => !currentEntryIds.includes(id));
+            
+            if (hasNewEntries && showAnimation) {
+                // Reconstruire le tableau avec animation pour les nouvelles entrées
+                rebuildTable(newEntries, currentEntryIds);
+            } else if (newEntries.length !== currentEntryIds.length) {
+                // Juste reconstruire le tableau sans animation
+                rebuildTable(newEntries, []);
+            }
+        }
+
+        // Reconstruire le tableau HTML
+        function rebuildTable(entries, oldEntryIds) {
+            const tableBody = document.querySelector('.data-table tbody');
+            if (!tableBody) return;
+            
+            tableBody.innerHTML = '';
+            
+            entries.forEach((entry, index) => {
+                const isNewEntry = !oldEntryIds.includes(entry.id.toString());
+                const row = createTableRow(entry, isNewEntry);
+                tableBody.appendChild(row);
+                
+                // Animation pour les nouvelles entrées
+                if (isNewEntry) {
+                    setTimeout(() => {
+                        row.classList.add('new-entry');
+                    }, index * 100);
+                }
+            });
+        }
+
+        // Créer une ligne de tableau
+        function createTableRow(entry, isNew = false) {
+            const row = document.createElement('tr');
+            if (isNew) row.classList.add('new-entry');
+            
+            // Construire le HTML de la ligne (adapté selon les champs du formulaire)
+            let rowHTML = `<td>${entry.id}`;
+            if (isNew) rowHTML += `<span class="new-badge">NOUVEAU</span>`;
+            rowHTML += `</td>`;
+            
+            // Ajouter les autres colonnes dynamiquement
+            {% for field in fields %}
+                rowHTML += `<td>${entry['{{ field.name }}'] || ''}</td>`;
+            {% endfor %}
+            
+            rowHTML += `<td>${entry.created_at ? entry.created_at.split(' ')[0] : ''}</td>`;
+            rowHTML += `
+                <td class="actions-cell">
+                    <button onclick="editEntry(${entry.id})" class="action-btn edit-btn" title="Modifier">
+                        ✏️
+                    </button>
+                    <button onclick="deleteEntry(${entry.id})" class="action-btn delete-btn" title="Supprimer">
+                        🗑️
+                    </button>
+                </td>
+            `;
+            
+            row.innerHTML = rowHTML;
+            return row;
+        }
     </script>
 </body>
 </html> 
