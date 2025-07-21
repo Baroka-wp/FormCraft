@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion - FormCraft</title>
+    <style>
+        /* File: login.html */
+        /* Purpose: Page de connexion avec style japonais cohérent */
+        
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+        
+        :root {
+            /* Style japonais - couleurs douces et naturelles */
+            --bg-primary: #faf9f7;
+            --bg-secondary: #f5f3f0;
+            --bg-card: rgba(255, 255, 255, 0.9);
+            --accent-primary: #2d5016;        /* Vert matcha foncé */
+            --accent-secondary: #e91e63;      /* Rose sakura */
+            --accent-gradient: linear-gradient(135deg, #4a7c59, #e91e63);
+            --text-primary: #2c2c2c;
+            --text-secondary: #666666;
+            --text-muted: #999999;
+            --border-color: rgba(45, 80, 22, 0.1);
+            --success-color: #4a7c59;         /* Vert bambou */
+            --danger-color: #d32f2f;
+            --warning-color: #ff9800;
+            --shadow-glow: 0 0 20px rgba(74, 124, 89, 0.2);
+            --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.1);
+            --matcha-light: #8bc34a;          /* Vert matcha clair */
+            --sakura-light: #fce4ec;          /* Rose sakura clair */
+            --cream: #fff8e1;                 /* Crème */
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(74, 124, 89, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(233, 30, 99, 0.05) 0%, transparent 50%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 450px;
+            width: 100%;
+        }
+
+        .auth-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 1.5rem;
+            padding: 3rem 2.5rem;
+            box-shadow: var(--shadow-card);
+            position: relative;
+            overflow: hidden;
+            animation: slideUp 0.8s ease;
+        }
+
+        .auth-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--accent-gradient);
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .logo h1 {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+            animation: glow 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { filter: drop-shadow(0 0 5px rgba(74, 124, 89, 0.3)); }
+            to { filter: drop-shadow(0 0 15px rgba(233, 30, 99, 0.3)); }
+        }
+
+        .logo p {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .auth-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        /* Messages d'erreur */
+        .flash-messages {
+            margin-bottom: 2rem;
+        }
+
+        .flash-message {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 1.5rem;
+            margin-bottom: 1rem;
+            border-radius: 0.75rem;
+            border-left: 4px solid;
+            animation: slideIn 0.3s ease;
+        }
+
+        .flash-success {
+            background: rgba(74, 124, 89, 0.1);
+            border-color: var(--success-color);
+            color: var(--success-color);
+        }
+
+        .flash-error {
+            background: rgba(211, 47, 47, 0.1);
+            border-color: var(--danger-color);
+            color: var(--danger-color);
+        }
+
+        .flash-info {
+            background: rgba(33, 150, 243, 0.1);
+            border-color: #2196f3;
+            color: #2196f3;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .flash-message button {
+            background: none;
+            border: none;
+            color: inherit;
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.75rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+            font-size: 1rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            background: white;
+            border: 2px solid var(--border-color);
+            border-radius: 0.75rem;
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            line-height: 1.5;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 4px rgba(74, 124, 89, 0.1);
+            background: var(--cream);
+            transform: translateY(-2px);
+        }
+
+        .form-group input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 2rem;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+            margin: 0;
+            transform: scale(1.2);
+            accent-color: var(--accent-primary);
+        }
+
+        .checkbox-group label {
+            margin: 0;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 1.25rem 2rem;
+            background: var(--accent-gradient);
+            color: white;
+            border: none;
+            border-radius: 1rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .submit-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .auth-footer {
+            text-align: center;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .auth-footer p {
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+        }
+
+        .auth-link {
+            color: var(--accent-primary);
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .auth-link:hover {
+            color: var(--accent-secondary);
+            text-decoration: underline;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .auth-card {
+                padding: 2rem 1.5rem;
+                border-radius: 1rem;
+            }
+
+            .logo h1 {
+                font-size: 2rem;
+            }
+
+            .auth-title {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="auth-card">
+            <div class="logo">
+                <h1>FormCraft</h1>
+                <p>Créateur de formulaires dynamiques</p>
+            </div>
+
+            <h2 class="auth-title">🔐 Connexion</h2>
+
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="flash-message flash-{{ category }}">
+                            <span>{{ message }}</span>
+                            <button onclick="this.parentElement.remove()">✕</button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <form method="POST">
+                <div class="form-group">
+                    <label for="username">Nom d'utilisateur ou Email</label>
+                    <input type="text" id="username" name="username" 
+                           placeholder="Votre nom d'utilisateur ou email" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Mot de passe</label>
+                    <input type="password" id="password" name="password" 
+                           placeholder="Votre mot de passe" required>
+                </div>
+
+                <div class="checkbox-group">
+                    <input type="checkbox" id="remember" name="remember">
+                    <label for="remember">Se souvenir de moi</label>
+                </div>
+
+                <button type="submit" class="submit-btn">
+                    🚀 Se connecter
+                </button>
+            </form>
+
+            <div class="auth-footer">
+                <p>Vous n'avez pas encore de compte ?</p>
+                <a href="{{ url_for('register') }}" class="auth-link">
+                    ➕ Créer un compte
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Animation au chargement
+        document.addEventListener('DOMContentLoaded', function() {
+            const authCard = document.querySelector('.auth-card');
+            authCard.style.opacity = '0';
+            authCard.style.transform = 'translateY(30px)';
+            
+            setTimeout(() => {
+                authCard.style.transition = 'all 0.8s ease';
+                authCard.style.opacity = '1';
+                authCard.style.transform = 'translateY(0)';
+            }, 100);
+
+            // Animation des champs lors du focus
+            const inputs = document.querySelectorAll('input');
+            inputs.forEach(input => {
+                input.addEventListener('focus', function() {
+                    this.parentElement.style.transform = 'scale(1.02)';
+                });
+                
+                input.addEventListener('blur', function() {
+                    this.parentElement.style.transform = 'scale(1)';
+                });
+            });
+        });
+    </script>
+</body>
+</html> 

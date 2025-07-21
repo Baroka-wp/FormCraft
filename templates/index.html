@@ -240,6 +240,71 @@
             box-shadow: var(--shadow-glow);
         }
 
+        /* User info section */
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem 1.5rem;
+            margin: 0 1rem 1rem;
+            background: rgba(74, 124, 89, 0.1);
+            border: 1px solid rgba(74, 124, 89, 0.2);
+            border-radius: 0.75rem;
+            position: relative;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--accent-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 1rem;
+        }
+
+        .user-details {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: var(--accent-primary);
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .user-email {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .logout-btn {
+            background: rgba(211, 47, 47, 0.1);
+            color: var(--danger-color);
+            border: 1px solid rgba(211, 47, 47, 0.2);
+            border-radius: 0.5rem;
+            padding: 0.5rem;
+            text-decoration: none;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logout-btn:hover {
+            background: rgba(211, 47, 47, 0.2);
+            transform: scale(1.1);
+        }
+
         /* === CONTENU PRINCIPAL === */
         .main-content {
             background: var(--bg-card);
@@ -636,6 +701,16 @@
             <div class="logo">
                 <h1>FormCraft</h1>
                 <p>v2.0.0</p>
+            </div>
+
+            <!-- User info -->
+            <div class="user-info">
+                <div class="user-avatar">{{ current_user.username[0]|upper }}</div>
+                <div class="user-details">
+                    <div class="user-name">{{ current_user.username }}</div>
+                    <div class="user-email">{{ current_user.email }}</div>
+                </div>
+                <a href="{{ url_for('logout') }}" class="logout-btn" title="Déconnexion">🚪</a>
             </div>
             
             <div class="menu">

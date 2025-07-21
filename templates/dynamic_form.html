@@ -363,6 +363,37 @@
             box-shadow: 0 4px 20px rgba(139, 195, 74, 0.3) !important;
         }
 
+        .edit-btn.data-btn {
+            background: rgba(255, 152, 0, 0.1);
+            color: var(--warning-color);
+            border: 1px solid rgba(255, 152, 0, 0.3);
+            cursor: pointer;
+        }
+
+        .edit-btn.data-btn:hover {
+            background: rgba(255, 152, 0, 0.2) !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(255, 152, 0, 0.3) !important;
+        }
+
+        .edit-btn.data-btn.active {
+            background: rgba(255, 152, 0, 0.2);
+            box-shadow: 0 4px 20px rgba(255, 152, 0, 0.3);
+        }
+
+        .edit-btn.share-btn {
+            background: rgba(139, 195, 74, 0.1);
+            color: #4a7c59;
+            border: 1px solid rgba(139, 195, 74, 0.3);
+            cursor: pointer;
+        }
+
+        .edit-btn.integration {
+            background: rgba(233, 30, 99, 0.1);
+            color: var(--accent-secondary);
+            border: 1px solid rgba(233, 30, 99, 0.3);
+        }
+
         /* Modal de partage */
         .share-modal {
             display: none;
@@ -475,6 +506,30 @@
 
         .copy-success {
             background: var(--success-color) !important;
+        }
+
+        /* Toggle de la vue données */
+        .data-section {
+            transition: all 0.5s ease;
+        }
+
+        .data-section.hidden {
+            display: none;
+        }
+
+        .data-section.show {
+            animation: slideDown 0.5s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .form-description {
@@ -974,7 +1029,7 @@
                             <div class="menu-item-content">
                                 <a href="/" class="menu-link">
                                     <span class="menu-icon">👥</span>
-                                    <span>Utilisateurs</span>
+                                    <span>Dashboard</span>
                                 </a>
                             </div>
                         </li>
@@ -1022,11 +1077,15 @@
             <div class="form-header">
                 <h2 class="section-title">{{ form_info.title }}</h2>
                 <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
-                    <button onclick="shareForm('{{ form_info.public_token }}')" class="edit-btn share-btn" style="background: rgba(139, 195, 74, 0.1); color: #4a7c59; border-color: rgba(139, 195, 74, 0.3);">
+                    <button onclick="toggleDataView()" class="edit-btn data-btn">
+                        <span>📊</span>
+                        <span id="dataToggleText">Voir les données</span>
+                    </button>
+                    <button onclick="shareForm('{{ form_info.public_token }}')" class="edit-btn share-btn">
                         <span>🔗</span>
                         <span>Partager</span>
                     </button>
-                    <a href="/form/{{ current_form }}/integration" class="edit-btn integration" style="background: rgba(233, 30, 99, 0.1); color: var(--accent-secondary); border-color: rgba(233, 30, 99, 0.3);">
+                    <a href="/form/{{ current_form }}/integration" class="edit-btn integration">
                         <span>🔌</span>
                         <span>Intégration</span>
                     </a>
@@ -1083,7 +1142,7 @@
         </div>
 
         <!-- === SECTION DONNÉES === -->
-        <div class="data-section">
+        <div class="data-section hidden" id="dataSection">
             <div class="data-header">
                 <h2 class="section-title" style="margin: 0;">Données enregistrées</h2>
                 <div class="data-count">
@@ -1205,6 +1264,32 @@
                 form.action = `/delete-entry/{{ current_form }}/${entryId}`;
                 document.body.appendChild(form);
                 form.submit();
+            }
+        }
+
+        // Fonction pour toggle la vue des données
+        function toggleDataView() {
+            const dataSection = document.getElementById('dataSection');
+            const toggleText = document.getElementById('dataToggleText');
+            const dataBtn = document.querySelector('.data-btn');
+            
+            if (dataSection.classList.contains('hidden')) {
+                // Afficher les données
+                dataSection.classList.remove('hidden');
+                dataSection.classList.add('show');
+                toggleText.textContent = 'Masquer les données';
+                dataBtn.classList.add('active');
+                
+                // Scroll vers la section données
+                setTimeout(() => {
+                    dataSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 100);
+            } else {
+                // Masquer les données
+                dataSection.classList.add('hidden');
+                dataSection.classList.remove('show');
+                toggleText.textContent = 'Voir les données';
+                dataBtn.classList.remove('active');
             }
         }
 

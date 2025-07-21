@@ -1,11 +1,146 @@
 from flask import Flask, request, render_template, redirect, url_for, flash, jsonify
+from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 import sqlite3
 import os
 import json
 import secrets
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 app.secret_key = 'votre_clé_secrète_ici'  # Changez ceci en production
+
+# Configuration Flask-Login
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+login_manager.login_message = 'Veuillez vous connecter pour accéder à cette page.'
+login_manager.login_message_category = 'info'
+
+# Classe User pour Flask-Login
+class User(UserMixin):
+    def __init__(self, id, username, email, created_at):
+        self.id = id
+        self.username = username
+        self.email = email
+        self.created_at = created_at
+
+@login_manager.user_loader
+def load_user(user_id):
+    """Charge un utilisateur à partir de son ID"""
+    try:
+        conn = get_db_connection()
+        user_data = conn.execute('SELECT * FROM users WHERE id = ?', (user_id,)).fetchone()
+        conn.close()
+        
+        if user_data:
+            return User(user_data['id'], user_data['username'], user_data['email'], user_data['created_at'])
+        return None
+    except sqlite3.OperationalError:
+        # La table n'existe pas encore (premier démarrage)
+        return None
+
+# ===== ROUTES D'AUTHENTIFICATION =====
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    """Route d'inscription"""
+    if request.method == 'POST':
+        username = request.form.get('username', '').strip()
+        email = request.form.get('email', '').strip()
+        password = request.form.get('password', '').strip()
+        confirm_password = request.form.get('confirm_password', '').strip()
+        
+        # Validation des données
+        errors = []
+        if not username or len(username) < 3:
+            errors.append('Le nom d\'utilisateur doit contenir au moins 3 caractères')
+        if not email or '@' not in email:
+            errors.append('Veuillez saisir un email valide')
+        if not password or len(password) < 6:
+            errors.append('Le mot de passe doit contenir au moins 6 caractères')
+        if password != confirm_password:
+            errors.append('Les mots de passe ne correspondent pas')
+        
+        if not errors:
+            try:
+                # Vérifier si l'utilisateur existe déjà
+                conn = get_db_connection()
+                existing_user = conn.execute(
+                    'SELECT id FROM users WHERE username = ? OR email = ?', 
+                    (username, email)
+                ).fetchone()
+                
+                if existing_user:
+                    flash('Ce nom d\'utilisateur ou email est déjà utilisé', 'error')
+                else:
+                    # Créer le nouvel utilisateur
+                    password_hash = generate_password_hash(password)
+                    cursor = conn.cursor()
+                    cursor.execute('''
+                        INSERT INTO users (username, email, password_hash)
+                        VALUES (?, ?, ?)
+                    ''', (username, email, password_hash))
+                    
+                    user_id = cursor.lastrowid
+                    conn.commit()
+                    
+                    # Connecter automatiquement l'utilisateur
+                    user = User(user_id, username, email, None)
+                    login_user(user)
+                    
+                    flash(f'Compte créé avec succès ! Bienvenue {username} !', 'success')
+                    return redirect(url_for('index'))
+                    
+                conn.close()
+                
+            except Exception as e:
+                flash(f'Erreur lors de la création du compte : {str(e)}', 'error')
+        else:
+            for error in errors:
+                flash(error, 'error')
+    
+    return render_template('auth/register.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    """Route de connexion"""
+    if request.method == 'POST':
+        username = request.form.get('username', '').strip()
+        password = request.form.get('password', '').strip()
+        remember = bool(request.form.get('remember'))
+        
+        if not username or not password:
+            flash('Veuillez saisir votre nom d\'utilisateur et mot de passe', 'error')
+        else:
+            # Rechercher l'utilisateur
+            conn = get_db_connection()
+            user_data = conn.execute(
+                'SELECT * FROM users WHERE username = ? OR email = ?', 
+                (username, username)
+            ).fetchone()
+            conn.close()
+            
+            if user_data and check_password_hash(user_data['password_hash'], password):
+                user = User(user_data['id'], user_data['username'], user_data['email'], user_data['created_at'])
+                login_user(user, remember=remember)
+                flash(f'Connexion réussie ! Bonjour {user.username} !', 'success')
+                
+                # Rediriger vers la page demandée ou l'accueil
+                next_page = request.args.get('next')
+                return redirect(next_page) if next_page else redirect(url_for('index'))
+            else:
+                flash('Nom d\'utilisateur ou mot de passe incorrect', 'error')
+    
+    return render_template('auth/login.html')
+
+@app.route('/logout')
+@login_required
+def logout():
+    """Route de déconnexion"""
+    username = current_user.username
+    logout_user()
+    flash(f'Déconnexion réussie ! À bientôt {username} !', 'success')
+    return redirect(url_for('login'))
 
 # Configuration de la base de données
 import os
@@ -17,21 +152,35 @@ if not os.path.exists(DATABASE_DIR):
     os.makedirs(DATABASE_DIR)
 
 def init_db():
-    """Initialise la base de données avec la table forms"""
+    """Initialise la base de données avec les tables users et forms"""
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
     
-    # Table pour stocker les formulaires créés
+    # Table pour stocker les utilisateurs (authentification)
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT NOT NULL UNIQUE,
+            email TEXT NOT NULL UNIQUE,
+            password_hash TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+    
+    # Table pour stocker les formulaires créés (maintenant liés aux utilisateurs)
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS forms (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL UNIQUE,
+            name TEXT NOT NULL,
             title TEXT NOT NULL,
             description TEXT,
             fields TEXT NOT NULL,
             database_file TEXT NOT NULL,
             public_token TEXT UNIQUE,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            user_id INTEGER NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users (id),
+            UNIQUE(name, user_id)
         )
     ''')
     
@@ -229,6 +378,7 @@ def update_database_structure(db_path, old_fields, new_fields):
         conn.close()
 
 @app.route('/create-form', methods=['GET', 'POST'])
+@login_required
 def create_form():
     """Route pour créer un nouveau formulaire"""
     if request.method == 'POST':
@@ -278,9 +428,9 @@ def create_form():
                     conn = get_db_connection()
                     cursor = conn.cursor()
                     cursor.execute('''
-                        INSERT INTO forms (name, title, description, fields, database_file, public_token)
-                        VALUES (?, ?, ?, ?, ?, ?)
-                    ''', (form_name, form_title, form_description, json.dumps(fields), db_filename, public_token))
+                        INSERT INTO forms (name, title, description, fields, database_file, public_token, user_id)
+                        VALUES (?, ?, ?, ?, ?, ?, ?)
+                    ''', (form_name, form_title, form_description, json.dumps(fields), db_filename, public_token, current_user.id))
                     
                     conn.commit()
                     conn.close()
@@ -296,12 +446,13 @@ def create_form():
     return render_template('create_form.html')
 
 @app.route('/form/<form_name>', methods=['GET', 'POST'])
+@login_required
 def dynamic_form(form_name):
-    """Route pour afficher et traiter un formulaire dynamique"""
-    # Récupérer les informations du formulaire
+    """Route pour afficher et traiter un formulaire dynamique de l'utilisateur connecté"""
+    # Récupérer les informations du formulaire (uniquement ceux de l'utilisateur connecté)
     conn = get_db_connection()
     form_info = conn.execute(
-        'SELECT * FROM forms WHERE name = ?', (form_name,)
+        'SELECT * FROM forms WHERE name = ? AND user_id = ?', (form_name, current_user.id)
     ).fetchone()
     
     if not form_info:
@@ -363,8 +514,11 @@ def dynamic_form(form_name):
     except:
         entries = []
     
-    # Récupération de tous les formulaires pour la sidebar
-    all_forms = conn.execute('SELECT * FROM forms ORDER BY created_at DESC').fetchall()
+    # Récupération des formulaires de l'utilisateur connecté pour la sidebar
+    all_forms = conn.execute(
+        'SELECT * FROM forms WHERE user_id = ? ORDER BY created_at DESC', 
+        (current_user.id,)
+    ).fetchall()
     conn.close()
     
     return render_template('dynamic_form.html', 
@@ -375,13 +529,14 @@ def dynamic_form(form_name):
                          current_form=form_name)
 
 @app.route('/delete-form/<form_name>', methods=['POST'])
+@login_required
 def delete_form(form_name):
-    """Route pour supprimer un formulaire et sa base de données"""
+    """Route pour supprimer un formulaire et sa base de données (uniquement le propriétaire)"""
     try:
-        # Récupérer les informations du formulaire
+        # Récupérer les informations du formulaire (vérifier la propriété)
         conn = get_db_connection()
         form_info = conn.execute(
-            'SELECT * FROM forms WHERE name = ?', (form_name,)
+            'SELECT * FROM forms WHERE name = ? AND user_id = ?', (form_name, current_user.id)
         ).fetchone()
         
         if not form_info:
@@ -410,12 +565,13 @@ def delete_form(form_name):
     return redirect(url_for('index'))
 
 @app.route('/edit-form/<form_name>', methods=['GET', 'POST'])
+@login_required
 def edit_form(form_name):
-    """Route pour modifier un formulaire existant"""
-    # Récupérer les informations du formulaire
+    """Route pour modifier un formulaire existant (uniquement le propriétaire)"""
+    # Récupérer les informations du formulaire (vérifier la propriété)
     conn = get_db_connection()
     form_info = conn.execute(
-        'SELECT * FROM forms WHERE name = ?', (form_name,)
+        'SELECT * FROM forms WHERE name = ? AND user_id = ?', (form_name, current_user.id)
     ).fetchone()
     
     if not form_info:
@@ -488,12 +644,13 @@ def edit_form(form_name):
                          form_name=form_name)
 
 @app.route('/edit-entry/<form_name>/<int:entry_id>', methods=['GET', 'POST'])
+@login_required
 def edit_entry(form_name, entry_id):
-    """Route pour modifier une entrée spécifique"""
-    # Récupérer les informations du formulaire
+    """Route pour modifier une entrée spécifique (uniquement le propriétaire du formulaire)"""
+    # Récupérer les informations du formulaire (vérifier la propriété)
     conn = get_db_connection()
     form_info = conn.execute(
-        'SELECT * FROM forms WHERE name = ?', (form_name,)
+        'SELECT * FROM forms WHERE name = ? AND user_id = ?', (form_name, current_user.id)
     ).fetchone()
     
     if not form_info:
@@ -568,8 +725,20 @@ def edit_entry(form_name, entry_id):
                          entry_id=entry_id)
 
 @app.route('/delete-entry/<form_name>/<int:entry_id>', methods=['POST'])
+@login_required
 def delete_entry(form_name, entry_id):
     try:
+        # Vérifier que l'utilisateur est propriétaire du formulaire
+        conn = get_db_connection()
+        form_info = conn.execute(
+            'SELECT * FROM forms WHERE name = ? AND user_id = ?', (form_name, current_user.id)
+        ).fetchone()
+        conn.close()
+        
+        if not form_info:
+            flash('Formulaire non trouvé ou accès refusé', 'error')
+            return redirect(url_for('index'))
+        
         db_path = os.path.join(DATABASE_DIR, f'{form_name}.db')
         delete_form_entry(db_path, entry_id)
         flash('Entrée supprimée avec succès!', 'success')
@@ -877,12 +1046,13 @@ def api_delete_entry(form_name, entry_id):
 # ===== API DOCUMENTATION ENDPOINT =====
 
 @app.route('/form/<form_name>/integration', methods=['GET'])
+@login_required
 def form_integration(form_name):
-    """Page d'intégration API spécifique à un formulaire"""
-    # Récupérer les informations du formulaire
+    """Page d'intégration API spécifique à un formulaire (uniquement le propriétaire)"""
+    # Récupérer les informations du formulaire (vérifier la propriété)
     conn = get_db_connection()
     form_info = conn.execute(
-        'SELECT * FROM forms WHERE name = ?', (form_name,)
+        'SELECT * FROM forms WHERE name = ? AND user_id = ?', (form_name, current_user.id)
     ).fetchone()
     
     if not form_info:
@@ -896,8 +1066,11 @@ def form_integration(form_name):
         flash('Erreur dans la configuration du formulaire', 'error')
         return redirect(url_for('index'))
     
-    # Récupération de tous les formulaires pour la sidebar
-    all_forms = conn.execute('SELECT * FROM forms ORDER BY created_at DESC').fetchall()
+    # Récupération des formulaires de l'utilisateur connecté pour la sidebar
+    all_forms = conn.execute(
+        'SELECT * FROM forms WHERE user_id = ? ORDER BY created_at DESC', 
+        (current_user.id,)
+    ).fetchall()
     conn.close()
     
     # Générer un exemple de données pour ce formulaire
@@ -1075,11 +1248,15 @@ def api_documentation():
     return jsonify(docs)
 
 @app.route('/', methods=['GET'])
+@login_required
 def index():
-    """Route principale pour afficher le dashboard des formulaires"""
-    # Récupération de tous les formulaires
+    """Route principale pour afficher le dashboard des formulaires de l'utilisateur connecté"""
+    # Récupération des formulaires de l'utilisateur connecté uniquement
     conn = get_db_connection()
-    forms = conn.execute('SELECT * FROM forms ORDER BY created_at DESC').fetchall()
+    forms = conn.execute(
+        'SELECT * FROM forms WHERE user_id = ? ORDER BY created_at DESC', 
+        (current_user.id,)
+    ).fetchall()
     conn.close()
     
     return render_template('index.html', forms=forms)
