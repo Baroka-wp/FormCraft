@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion Utilisateurs</title>
+    <style>
+        /* File: index.html */
+        /* Purpose: Interface 3 colonnes pour gestion utilisateurs */
+        /* Layout: Sidebar | Formulaire | Tableau utilisateurs */
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            color: #212529;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 250px 1fr 1fr;
+            height: 100vh;
+            gap: 0;
+        }
+
+        /* === SIDEBAR === */
+        .sidebar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid rgba(0, 0, 0, 0.1);
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #007aff;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .menu {
+            list-style: none;
+        }
+
+        .menu-item {
+            margin-bottom: 15px;
+        }
+
+        .menu-link {
+            display: block;
+            padding: 12px 16px;
+            color: #6c757d;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+
+        .menu-link:hover,
+        .menu-link.active {
+            background: rgba(0, 122, 255, 0.1);
+            color: #007aff;
+        }
+
+        .menu-item-content {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .menu-item-content .menu-link {
+            flex: 1;
+            margin: 0;
+        }
+
+        .delete-btn {
+            background: none;
+            border: none;
+            color: #6c757d;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            opacity: 0;
+            transform: translateX(10px);
+        }
+
+        .menu-item:hover .delete-btn {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .delete-btn:hover {
+            background: rgba(220, 53, 69, 0.1);
+            color: #dc3545;
+        }
+
+        .stats {
+            margin-top: auto;
+            padding: 20px 16px;
+            background: rgba(0, 122, 255, 0.05);
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stats-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #007aff;
+        }
+
+        .stats-label {
+            font-size: 0.85rem;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+
+        /* === FORMULAIRE === */
+        .form-section {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #212529;
+            margin-bottom: 30px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #007aff;
+        }
+
+        /* Messages flash */
+        .flash-messages {
+            margin-bottom: 25px;
+        }
+
+        .flash-message {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+        }
+
+        .flash-message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .flash-message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 500;
+            color: #495057;
+            margin-bottom: 6px;
+            font-size: 0.9rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #ced4da;
+            border-radius: 8px;
+            background: #fff;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #007aff;
+            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: #007aff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .submit-btn:hover {
+            background: #0056b3;
+            transform: translateY(-1px);
+        }
+
+        /* === TABLEAU UTILISATEURS === */
+        .users-section {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .users-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #007aff;
+        }
+
+        .users-count {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .users-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .users-table th {
+            background: #f8f9fa;
+            padding: 15px 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #495057;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .users-table td {
+            padding: 12px;
+            border-bottom: 1px solid #f8f9fa;
+            color: #212529;
+        }
+
+        .users-table tbody tr:hover {
+            background: rgba(0, 122, 255, 0.05);
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #007aff, #0056b3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+
+        .no-users {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+            font-style: italic;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .container {
+                grid-template-columns: 200px 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto 1fr;
+                height: auto;
+            }
+
+            body {
+                overflow: auto;
+            }
+
+            .sidebar {
+                padding: 20px;
+            }
+
+            .menu {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            .menu-item {
+                margin-bottom: 0;
+            }
+
+            .stats {
+                margin-top: 20px;
+            }
+
+            .form-section,
+            .users-section {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        
+        <!-- === SIDEBAR === -->
+        <div class="sidebar">
+            <div class="logo">📋 UserApp</div>
+            
+            <ul class="menu">
+                <li class="menu-item">
+                    <a href="/" class="menu-link active">👥 Utilisateurs (défaut)</a>
+                </li>
+                
+                {% if forms %}
+                    <li class="menu-separator">
+                        <div style="border-top: 1px solid #dee2e6; margin: 15px 0;"></div>
+                        <div style="font-size: 0.8rem; color: #6c757d; padding: 0 16px; margin-bottom: 10px;">MES FORMULAIRES</div>
+                    </li>
+                    {% for form in forms %}
+                        <li class="menu-item">
+                            <div class="menu-item-content">
+                                <a href="/form/{{ form.name }}" class="menu-link">📋 {{ form.title }}</a>
+                                <button onclick="deleteForm('{{ form.name }}', '{{ form.title }}')" 
+                                        class="delete-btn" title="Supprimer ce formulaire">🗑️</button>
+                            </div>
+                        </li>
+                    {% endfor %}
+                {% endif %}
+                
+                <li class="menu-separator">
+                    <div style="border-top: 1px solid #dee2e6; margin: 15px 0;"></div>
+                </li>
+                <li class="menu-item">
+                    <a href="/create-form" class="menu-link" style="background: rgba(0, 122, 255, 0.1); color: #007aff;">
+                        ➕ Nouveau Formulaire
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="/api/users" class="menu-link">🔗 API</a>
+                </li>
+            </ul>
+
+            <div class="stats">
+                <div class="stats-number">{{ users|length }}</div>
+                <div class="stats-label">Utilisateurs</div>
+            </div>
+        </div>
+
+        <!-- === FORMULAIRE === -->
+        <div class="form-section">
+            <h2 class="section-title">Ajouter un utilisateur</h2>
+
+            <!-- Messages flash -->
+            {% if get_flashed_messages() %}
+                <div class="flash-messages">
+                    {% for category, message in get_flashed_messages(with_categories=true) %}
+                        <div class="flash-message {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <form method="POST" action="/">
+                <div class="form-group">
+                    <label for="nom">Nom de famille</label>
+                    <input type="text" id="nom" name="nom" placeholder="Dupont" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="prenom">Prénom</label>
+                    <input type="text" id="prenom" name="prenom" placeholder="Jean" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="age">Âge</label>
+                    <input type="number" id="age" name="age" placeholder="25" min="0" max="150" required>
+                </div>
+
+                <button type="submit" class="submit-btn">
+                    ➕ Ajouter l'utilisateur
+                </button>
+            </form>
+        </div>
+
+        <!-- === TABLEAU UTILISATEURS === -->
+        <div class="users-section">
+            <div class="users-header">
+                <h2 class="section-title" style="margin: 0; border: none; padding: 0;">Liste des utilisateurs</h2>
+                <div class="users-count">
+                    {{ users|length }} utilisateur{% if users|length != 1 %}s{% endif %}
+                </div>
+            </div>
+
+            {% if users %}
+                <div class="table-container">
+                    <table class="users-table">
+                        <thead>
+                            <tr>
+                                <th>Avatar</th>
+                                <th>Nom</th>
+                                <th>Prénom</th>
+                                <th>Âge</th>
+                                <th>Ajouté le</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in users %}
+                                <tr>
+                                    <td>
+                                        <div class="user-avatar">
+                                            {{ user.prenom[0]|upper }}{{ user.nom[0]|upper }}
+                                        </div>
+                                    </td>
+                                    <td><strong>{{ user.nom }}</strong></td>
+                                    <td>{{ user.prenom }}</td>
+                                    <td>{{ user.age }} ans</td>
+                                    <td>{{ user.created_at[:10] }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="no-users">
+                    Aucun utilisateur enregistré.<br>
+                    Utilisez le formulaire pour ajouter le premier utilisateur.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        function deleteForm(formName, formTitle) {
+            // Confirmation de suppression
+            const confirmed = confirm(
+                `⚠️ ATTENTION ⚠️\n\n` +
+                `Voulez-vous vraiment supprimer le formulaire "${formTitle}" ?\n\n` +
+                `Cette action est IRRÉVERSIBLE et supprimera :\n` +
+                `• Le formulaire et sa configuration\n` +
+                `• Toutes les données enregistrées\n` +
+                `• Le fichier de base de données\n\n` +
+                `Tapez "SUPPRIMER" dans le prompt suivant pour confirmer.`
+            );
+
+            if (confirmed) {
+                const finalConfirm = prompt(
+                    `Pour confirmer la suppression du formulaire "${formTitle}", tapez exactement :\nSUPPRIMER`
+                );
+
+                if (finalConfirm === "SUPPRIMER") {
+                    // Créer un formulaire caché pour envoyer la requête DELETE
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = `/delete-form/${formName}`;
+                    document.body.appendChild(form);
+                    form.submit();
+                } else if (finalConfirm !== null) {
+                    alert("❌ Suppression annulée. Le texte de confirmation ne correspond pas.");
+                }
+            }
+        }
+    </script>
+</body>
+</html> 

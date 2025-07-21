@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ form_info.title }}</title>
+    <style>
+        /* File: dynamic_form.html */
+        /* Purpose: Interface 3 colonnes pour formulaires dynamiques */
+        /* Layout: Sidebar | Formulaire dynamique | Tableau données */
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            color: #212529;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 250px 1fr 1fr;
+            height: 100vh;
+            gap: 0;
+        }
+
+        /* === SIDEBAR === */
+        .sidebar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid rgba(0, 0, 0, 0.1);
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #007aff;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .menu {
+            list-style: none;
+        }
+
+        .menu-item {
+            margin-bottom: 15px;
+        }
+
+        .menu-link {
+            display: block;
+            padding: 12px 16px;
+            color: #6c757d;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+
+        .menu-link:hover,
+        .menu-link.active {
+            background: rgba(0, 122, 255, 0.1);
+            color: #007aff;
+        }
+
+        .menu-item-content {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .menu-item-content .menu-link {
+            flex: 1;
+            margin: 0;
+        }
+
+        .delete-btn {
+            background: none;
+            border: none;
+            color: #6c757d;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            opacity: 0;
+            transform: translateX(10px);
+        }
+
+        .menu-item:hover .delete-btn {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .delete-btn:hover {
+            background: rgba(220, 53, 69, 0.1);
+            color: #dc3545;
+        }
+
+        .stats {
+            margin-top: auto;
+            padding: 20px 16px;
+            background: rgba(0, 122, 255, 0.05);
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stats-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #007aff;
+        }
+
+        .stats-label {
+            font-size: 0.85rem;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+
+        /* === FORMULAIRE === */
+        .form-section {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .form-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #212529;
+            margin: 0;
+        }
+
+        .edit-btn {
+            background: rgba(40, 167, 69, 0.1);
+            color: #28a745;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            border: 1px solid rgba(40, 167, 69, 0.2);
+        }
+
+        .edit-btn:hover {
+            background: rgba(40, 167, 69, 0.15);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(40, 167, 69, 0.2);
+        }
+
+        .form-description {
+            color: #6c757d;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #007aff;
+            font-style: italic;
+        }
+
+        /* Messages flash */
+        .flash-messages {
+            margin-bottom: 25px;
+        }
+
+        .flash-message {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+        }
+
+        .flash-message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .flash-message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 500;
+            color: #495057;
+            margin-bottom: 6px;
+            font-size: 0.9rem;
+        }
+
+        .required {
+            color: #dc3545;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #ced4da;
+            border-radius: 8px;
+            background: #fff;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #007aff;
+            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: #007aff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .submit-btn:hover {
+            background: #0056b3;
+            transform: translateY(-1px);
+        }
+
+        /* === TABLEAU DONNÉES === */
+        .data-section {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .data-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #007aff;
+        }
+
+        .data-count {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th {
+            background: #f8f9fa;
+            padding: 12px 10px;
+            text-align: left;
+            font-weight: 600;
+            color: #495057;
+            border-bottom: 1px solid #dee2e6;
+            font-size: 0.9rem;
+        }
+
+        .data-table td {
+            padding: 10px;
+            border-bottom: 1px solid #f8f9fa;
+            color: #212529;
+            font-size: 0.9rem;
+            max-width: 150px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .data-table tbody tr:hover {
+            background: rgba(0, 122, 255, 0.05);
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+            font-style: italic;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .container {
+                grid-template-columns: 200px 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto 1fr;
+                height: auto;
+            }
+
+            body {
+                overflow: auto;
+            }
+
+            .sidebar {
+                padding: 20px;
+            }
+
+            .menu {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            .menu-item {
+                margin-bottom: 0;
+            }
+
+            .stats {
+                margin-top: 20px;
+            }
+
+            .form-section,
+            .data-section {
+                padding: 20px;
+            }
+
+            .data-table th,
+            .data-table td {
+                padding: 8px 6px;
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        
+        <!-- === SIDEBAR === -->
+        <div class="sidebar">
+            <div class="logo">📋 UserApp</div>
+            
+            <ul class="menu">
+                <li class="menu-item">
+                    <a href="/" class="menu-link">👥 Utilisateurs (défaut)</a>
+                </li>
+                
+                {% if forms %}
+                    <li class="menu-separator">
+                        <div style="border-top: 1px solid #dee2e6; margin: 15px 0;"></div>
+                        <div style="font-size: 0.8rem; color: #6c757d; padding: 0 16px; margin-bottom: 10px;">MES FORMULAIRES</div>
+                    </li>
+                    {% for form in forms %}
+                        <li class="menu-item">
+                            <div class="menu-item-content">
+                                <a href="/form/{{ form.name }}" 
+                                   class="menu-link {% if current_form == form.name %}active{% endif %}">
+                                    📋 {{ form.title }}
+                                </a>
+                                <button onclick="deleteForm('{{ form.name }}', '{{ form.title }}')" 
+                                        class="delete-btn" title="Supprimer ce formulaire">🗑️</button>
+                            </div>
+                        </li>
+                    {% endfor %}
+                {% endif %}
+                
+                <li class="menu-separator">
+                    <div style="border-top: 1px solid #dee2e6; margin: 15px 0;"></div>
+                </li>
+                <li class="menu-item">
+                    <a href="/create-form" class="menu-link" style="background: rgba(0, 122, 255, 0.1); color: #007aff;">
+                        ➕ Nouveau Formulaire
+                    </a>
+                </li>
+                <li class="menu-item">
+                    <a href="/api/users" class="menu-link">🔗 API</a>
+                </li>
+            </ul>
+
+            <div class="stats">
+                <div class="stats-number">{{ entries|length }}</div>
+                <div class="stats-label">Entrées</div>
+            </div>
+        </div>
+
+        <!-- === FORMULAIRE === -->
+        <div class="form-section">
+            <div class="form-header">
+                <h2 class="section-title">{{ form_info.title }}</h2>
+                <a href="/edit-form/{{ current_form }}" class="edit-btn" title="Modifier ce formulaire">
+                    ✏️ Modifier
+                </a>
+            </div>
+            {% if form_info.description %}
+                <p class="form-description">{{ form_info.description }}</p>
+            {% endif %}
+
+            <!-- Messages flash -->
+            {% if get_flashed_messages() %}
+                <div class="flash-messages">
+                    {% for category, message in get_flashed_messages(with_categories=true) %}
+                        <div class="flash-message {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <form method="POST" action="/form/{{ current_form }}">
+                {% for field in fields %}
+                    <div class="form-group">
+                        <label for="{{ field.name }}">
+                            {{ field.label }}
+                            {% if field.required %}<span class="required">*</span>{% endif %}
+                        </label>
+                        
+                        {% if field.type == 'textarea' %}
+                            <textarea id="{{ field.name }}" 
+                                    name="{{ field.name }}" 
+                                    placeholder="Saisissez {{ field.label|lower }}"
+                                    {% if field.required %}required{% endif %}></textarea>
+                        {% else %}
+                            <input type="{{ field.type }}" 
+                                   id="{{ field.name }}" 
+                                   name="{{ field.name }}" 
+                                   placeholder="Saisissez {{ field.label|lower }}"
+                                   {% if field.required %}required{% endif %}
+                                   {% if field.type == 'number' %}min="0"{% endif %}>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+
+                <button type="submit" class="submit-btn">
+                    ✅ Enregistrer dans {{ form_info.title }}
+                </button>
+            </form>
+        </div>
+
+        <!-- === TABLEAU DONNÉES === -->
+        <div class="data-section">
+            <div class="data-header">
+                <h2 class="section-title" style="margin: 0; border: none; padding: 0;">Données enregistrées</h2>
+                <div class="data-count">
+                    {{ entries|length }} entrée{% if entries|length != 1 %}s{% endif %}
+                </div>
+            </div>
+
+            {% if entries %}
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                {% for field in fields %}
+                                    <th>{{ field.label }}</th>
+                                {% endfor %}
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for entry in entries %}
+                                <tr>
+                                    <td><strong>#{{ entry.id }}</strong></td>
+                                    {% for field in fields %}
+                                        <td title="{{ entry[field.name] }}">{{ entry[field.name] }}</td>
+                                    {% endfor %}
+                                    <td>{{ entry.created_at[:16] if entry.created_at else 'N/A' }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="no-data">
+                    Aucune donnée enregistrée.<br>
+                    Utilisez le formulaire pour ajouter la première entrée.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        function deleteForm(formName, formTitle) {
+            // Confirmation de suppression
+            const confirmed = confirm(
+                `⚠️ ATTENTION ⚠️\n\n` +
+                `Voulez-vous vraiment supprimer le formulaire "${formTitle}" ?\n\n` +
+                `Cette action est IRRÉVERSIBLE et supprimera :\n` +
+                `• Le formulaire et sa configuration\n` +
+                `• Toutes les données enregistrées\n` +
+                `• Le fichier de base de données\n\n` +
+                `Tapez "SUPPRIMER" dans le prompt suivant pour confirmer.`
+            );
+
+            if (confirmed) {
+                const finalConfirm = prompt(
+                    `Pour confirmer la suppression du formulaire "${formTitle}", tapez exactement :\nSUPPRIMER`
+                );
+
+                if (finalConfirm === "SUPPRIMER") {
+                    // Créer un formulaire caché pour envoyer la requête DELETE
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = `/delete-form/${formName}`;
+                    document.body.appendChild(form);
+                    form.submit();
+                } else if (finalConfirm !== null) {
+                    alert("❌ Suppression annulée. Le texte de confirmation ne correspond pas.");
+                }
+            }
+        }
+    </script>
+</body>
+</html> 
