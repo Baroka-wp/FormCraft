@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuration Restaurant - RestaurantCraft</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+        
+        :root {
+            --bg-primary: #faf9f7;
+            --bg-secondary: #f5f3f0;
+            --bg-card: rgba(255, 255, 255, 0.95);
+            --accent-primary: #2d5016;
+            --accent-secondary: #e91e63;
+            --accent-gradient: linear-gradient(135deg, #4a7c59, #e91e63);
+            --text-primary: #2c2c2c;
+            --text-secondary: #666666;
+            --text-muted: #999999;
+            --border-color: rgba(45, 80, 22, 0.1);
+            --success-color: #4a7c59;
+            --danger-color: #d32f2f;
+            --warning-color: #ff9800;
+            --shadow-glow: 0 0 20px rgba(74, 124, 89, 0.2);
+            --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.1);
+            --matcha-light: #8bc34a;
+            --sakura-light: #fce4ec;
+            --cream: #fff8e1;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(74, 124, 89, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(233, 30, 99, 0.05) 0%, transparent 50%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 2rem 1rem;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .logo-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+        }
+
+        .setup-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 1.5rem;
+            padding: 3rem;
+            box-shadow: var(--shadow-card);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .setup-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--accent-gradient);
+        }
+
+        .section {
+            margin-bottom: 3rem;
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--accent-primary);
+            position: relative;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 50px;
+            height: 2px;
+            background: var(--accent-secondary);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        .form-input,
+        .form-select,
+        .form-textarea {
+            width: 100%;
+            padding: 1rem;
+            background: white;
+            border: 2px solid var(--border-color);
+            border-radius: 0.75rem;
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 4px rgba(74, 124, 89, 0.1);
+            background: var(--cream);
+            transform: translateY(-1px);
+        }
+
+        .form-textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .color-input-group {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .color-input {
+            width: 80px;
+            height: 50px;
+            border: 2px solid var(--border-color);
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .color-input:hover {
+            transform: scale(1.05);
+            border-color: var(--accent-primary);
+        }
+
+        .color-preview {
+            flex: 1;
+            height: 50px;
+            border-radius: 0.5rem;
+            border: 2px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        .branding-preview {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 1rem;
+            padding: 2rem;
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .preview-logo {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin: 0 auto 1rem;
+            background: var(--bg-card);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            border: 2px solid var(--border-color);
+        }
+
+        .preview-name {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .preview-message {
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        .submit-section {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .submit-btn {
+            background: var(--accent-gradient);
+            color: white;
+            border: none;
+            padding: 1.25rem 3rem;
+            border-radius: 0.75rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 250px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .back-link:hover {
+            color: var(--accent-primary);
+            transform: translateX(-5px);
+        }
+
+        .feature-highlight {
+            background: var(--sakura-light);
+            border: 1px solid var(--accent-primary);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .feature-highlight h3 {
+            color: var(--accent-primary);
+            margin-bottom: 1rem;
+        }
+
+        .features-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            list-style: none;
+        }
+
+        .features-list li {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-secondary);
+        }
+
+        .flash-message {
+            padding: 1rem 1.5rem;
+            border-radius: 0.75rem;
+            margin-bottom: 2rem;
+            font-weight: 500;
+        }
+
+        .flash-success {
+            background: rgba(74, 124, 89, 0.1);
+            border: 1px solid var(--success-color);
+            color: var(--success-color);
+        }
+
+        .flash-error {
+            background: rgba(211, 47, 47, 0.1);
+            border: 1px solid var(--danger-color);
+            color: var(--danger-color);
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .setup-card {
+                padding: 2rem;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .color-input-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .submit-btn {
+                width: 100%;
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container fade-in">
+        <div class="header">
+            <a href="/" class="back-link">
+                <span>←</span>
+                <span>Retour au dashboard</span>
+            </a>
+            
+            <h1 class="logo-title">🍽️ RestaurantCraft</h1>
+            <p class="subtitle">Configurez le profil de votre restaurant</p>
+        </div>
+
+        <!-- Messages flash -->
+        {% if get_flashed_messages() %}
+            {% for category, message in get_flashed_messages(with_categories=true) %}
+                <div class="flash-message flash-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="setup-card">
+            <form method="POST" id="restaurantForm">
+                <!-- Informations de base -->
+                <div class="section">
+                    <h2 class="section-title">🏪 Informations de base</h2>
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label" for="restaurant_name">Nom du restaurant *</label>
+                            <input type="text" id="restaurant_name" name="restaurant_name" 
+                                   class="form-input" placeholder="Le Petit Bistrot"
+                                   value="{{ profile.restaurant_name if profile else '' }}" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="restaurant_type">Type de restaurant</label>
+                            <select id="restaurant_type" name="restaurant_type" class="form-select">
+                                <option value="">-- Sélectionnez --</option>
+                                <option value="Bistrot" {% if profile and profile.restaurant_type == 'Bistrot' %}selected{% endif %}>Bistrot</option>
+                                <option value="Brasserie" {% if profile and profile.restaurant_type == 'Brasserie' %}selected{% endif %}>Brasserie</option>
+                                <option value="Restaurant gastronomique" {% if profile and profile.restaurant_type == 'Restaurant gastronomique' %}selected{% endif %}>Restaurant gastronomique</option>
+                                <option value="Pizzeria" {% if profile and profile.restaurant_type == 'Pizzeria' %}selected{% endif %}>Pizzeria</option>
+                                <option value="Fast-food" {% if profile and profile.restaurant_type == 'Fast-food' %}selected{% endif %}>Fast-food</option>
+                                <option value="Café" {% if profile and profile.restaurant_type == 'Café' %}selected{% endif %}>Café</option>
+                                <option value="Bar" {% if profile and profile.restaurant_type == 'Bar' %}selected{% endif %}>Bar</option>
+                                <option value="Autre" {% if profile and profile.restaurant_type == 'Autre' %}selected{% endif %}>Autre</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="address">Adresse complète</label>
+                        <input type="text" id="address" name="address" class="form-input" 
+                               placeholder="123 Rue de la Paix, 75001 Paris"
+                               value="{{ profile.address if profile else '' }}">
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label" for="phone">Téléphone</label>
+                            <input type="tel" id="phone" name="phone" class="form-input" 
+                                   placeholder="01 23 45 67 89"
+                                   value="{{ profile.phone if profile else '' }}">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="website">Site web</label>
+                            <input type="url" id="website" name="website" class="form-input" 
+                                   placeholder="https://www.monrestaurant.fr"
+                                   value="{{ profile.website if profile else '' }}">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Branding et personnalisation -->
+                <div class="section">
+                    <h2 class="section-title">🎨 Branding et personnalisation</h2>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="logo_url">URL du logo (optionnel)</label>
+                        <input type="url" id="logo_url" name="logo_url" class="form-input" 
+                               placeholder="https://exemple.com/logo.png"
+                               value="{{ profile.logo_url if profile else '' }}"
+                               onchange="updatePreview()">
+                    </div>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label" for="primary_color">Couleur principale</label>
+                            <div class="color-input-group">
+                                <input type="color" id="primary_color" name="primary_color" 
+                                       class="color-input" 
+                                       value="{{ profile.primary_color if profile else '#2d5016' }}"
+                                       onchange="updateColorPreview()">
+                                <div class="color-preview" id="primaryPreview">Couleur principale</div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="secondary_color">Couleur secondaire</label>
+                            <div class="color-input-group">
+                                <input type="color" id="secondary_color" name="secondary_color" 
+                                       class="color-input" 
+                                       value="{{ profile.secondary_color if profile else '#e91e63' }}"
+                                       onchange="updateColorPreview()">
+                                <div class="color-preview" id="secondaryPreview">Couleur secondaire</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="welcome_message">Message d'accueil personnalisé</label>
+                        <textarea id="welcome_message" name="welcome_message" class="form-textarea" 
+                                  placeholder="Bienvenue dans notre restaurant ! Nous espérons que vous passerez un moment agréable."
+                                  onchange="updatePreview()">{{ profile.welcome_message if profile else '' }}</textarea>
+                    </div>
+
+                    <!-- Aperçu du branding -->
+                    <div class="branding-preview" id="brandingPreview">
+                        <div class="preview-logo" id="previewLogo">🍽️</div>
+                        <div class="preview-name" id="previewName">Nom du restaurant</div>
+                        <div class="preview-message" id="previewMessage">Message d'accueil personnalisé</div>
+                    </div>
+                </div>
+
+                <div class="submit-section">
+                    <button type="submit" class="submit-btn">
+                        🚀 {{ 'Mettre à jour le profil' if profile else 'Créer le profil restaurant' }}
+                    </button>
+                </div>
+            </form>
+
+            <!-- Informations sur les fonctionnalités -->
+            <div class="feature-highlight">
+                <h3>✨ Fonctionnalités incluses :</h3>
+                <ul class="features-list">
+                    <li>📋 Templates d'avis spécialisés</li>
+                    <li>🎨 Personnalisation complète</li>
+                    <li>📊 Analytics en temps réel</li>
+                    <li>📱 Interface mobile optimisée</li>
+                    <li>📸 Upload de photos par les clients</li>
+                    <li>⭐ Système de notation par étoiles</li>
+                    <li>💬 Modération des avis</li>
+                    <li>📧 Notifications email</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mise à jour de l'aperçu en temps réel
+        function updatePreview() {
+            const restaurantName = document.getElementById('restaurant_name').value || 'Nom du restaurant';
+            const logoUrl = document.getElementById('logo_url').value;
+            const welcomeMessage = document.getElementById('welcome_message').value || 'Message d\'accueil personnalisé';
+            
+            document.getElementById('previewName').textContent = restaurantName;
+            document.getElementById('previewMessage').textContent = welcomeMessage;
+            
+            const logoElement = document.getElementById('previewLogo');
+            if (logoUrl) {
+                logoElement.innerHTML = `<img src="${logoUrl}" alt="Logo" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+            } else {
+                logoElement.innerHTML = '🍽️';
+            }
+        }
+
+        function updateColorPreview() {
+            const primaryColor = document.getElementById('primary_color').value;
+            const secondaryColor = document.getElementById('secondary_color').value;
+            
+            document.getElementById('primaryPreview').style.background = primaryColor;
+            document.getElementById('secondaryPreview').style.background = secondaryColor;
+            
+            // Mettre à jour les couleurs CSS
+            document.documentElement.style.setProperty('--accent-primary', primaryColor);
+            document.documentElement.style.setProperty('--accent-secondary', secondaryColor);
+            
+            // Mettre à jour l'aperçu du branding
+            const preview = document.getElementById('brandingPreview');
+            preview.style.background = `linear-gradient(135deg, ${primaryColor}15, ${secondaryColor}15)`;
+            preview.style.borderColor = primaryColor;
+        }
+
+        // Écouter les changements sur les champs
+        document.getElementById('restaurant_name').addEventListener('input', updatePreview);
+        document.getElementById('logo_url').addEventListener('input', updatePreview);
+        document.getElementById('welcome_message').addEventListener('input', updatePreview);
+
+        // Initialiser l'aperçu
+        document.addEventListener('DOMContentLoaded', function() {
+            updatePreview();
+            updateColorPreview();
+        });
+
+        // Animation des éléments
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('fade-in');
+                }
+            });
+        }, observerOptions);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.section').forEach(el => {
+                observer.observe(el);
+            });
+        });
+    </script>
+</body>
+</html> 

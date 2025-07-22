@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aperçu - {{ template.title }}</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+        
+        :root {
+            --bg-primary: #faf9f7;
+            --bg-secondary: #f5f3f0;
+            --bg-card: rgba(255, 255, 255, 0.95);
+            --accent-primary: #2d5016;
+            --accent-secondary: #e91e63;
+            --accent-gradient: linear-gradient(135deg, #4a7c59, #e91e63);
+            --text-primary: #2c2c2c;
+            --text-secondary: #666666;
+            --text-muted: #999999;
+            --border-color: rgba(45, 80, 22, 0.1);
+            --success-color: #4a7c59;
+            --danger-color: #d32f2f;
+            --warning-color: #ff9800;
+            --shadow-glow: 0 0 20px rgba(74, 124, 89, 0.2);
+            --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.1);
+            --matcha-light: #8bc34a;
+            --sakura-light: #fce4ec;
+            --cream: #fff8e1;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(74, 124, 89, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(233, 30, 99, 0.05) 0%, transparent 50%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 1rem;
+        }
+
+        .preview-header {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-card);
+            text-align: center;
+            position: relative;
+        }
+
+        .preview-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: var(--accent-gradient);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .template-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            color: var(--accent-primary);
+        }
+
+        .template-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .template-description {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            line-height: 1.6;
+            max-width: 600px;
+            margin: 0 auto 2rem;
+        }
+
+        .preview-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 0.75rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--accent-gradient);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .btn-secondary {
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--cream);
+            color: var(--accent-primary);
+            transform: translateY(-1px);
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .form-container {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: var(--shadow-card);
+            position: relative;
+        }
+
+        .form-header {
+            padding: 3rem 2rem 2rem;
+            text-align: center;
+            background: var(--bg-card);
+            border-radius: 1rem 1rem 0 0;
+        }
+
+        .form-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+        }
+
+        .form-description {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        .form-content {
+            padding: 2rem;
+        }
+
+        .fields-preview {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .field-preview {
+            padding: 1.5rem;
+            background: white;
+            border: 2px solid var(--border-color);
+            border-radius: 0.75rem;
+            transition: all 0.3s ease;
+        }
+
+        .field-preview:hover {
+            border-color: var(--accent-primary);
+            background: var(--cream);
+            transform: translateY(-2px);
+        }
+
+        .field-label {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .field-type-badge {
+            background: var(--accent-primary);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .required-indicator {
+            color: var(--danger-color);
+            font-weight: 700;
+        }
+
+        .field-demo {
+            margin-top: 0.75rem;
+            padding: 0.75rem;
+            background: var(--bg-secondary);
+            border-radius: 0.5rem;
+            color: var(--text-muted);
+            font-style: italic;
+            border-left: 3px solid var(--accent-primary);
+        }
+
+        .field-options {
+            margin-top: 0.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .option-tag {
+            background: var(--sakura-light);
+            color: var(--accent-primary);
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .disclaimer {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: rgba(255, 152, 0, 0.1);
+            border: 1px solid var(--warning-color);
+            border-radius: 0.75rem;
+            color: var(--warning-color);
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 0.5rem;
+            }
+
+            .template-title {
+                font-size: 2rem;
+            }
+
+            .preview-actions {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .btn {
+                width: 100%;
+                max-width: 300px;
+                justify-content: center;
+            }
+
+            .form-content {
+                padding: 1.5rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container fade-in">
+        <!-- Header de prévisualisation -->
+        <div class="preview-header">
+            <div class="preview-badge">APERÇU</div>
+            
+            {% if template_type == 'contact' %}
+                <div class="template-icon">📞</div>
+            {% elif template_type == 'survey' %}
+                <div class="template-icon">📊</div>
+            {% elif template_type == 'registration' %}
+                <div class="template-icon">📝</div>
+            {% elif template_type == 'feedback' %}
+                <div class="template-icon">💬</div>
+            {% else %}
+                <div class="template-icon">📋</div>
+            {% endif %}
+            
+            <h1 class="template-title">{{ template.title }}</h1>
+            <p class="template-description">{{ template.description }}</p>
+            
+            <!-- Statistiques du template -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">{{ template.fields|length }}</div>
+                    <div class="stat-label">Champs</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ template.fields|selectattr('required')|list|length }}</div>
+                    <div class="stat-label">Obligatoires</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">{{ template.fields|selectattr('options')|list|length }}</div>
+                    <div class="stat-label">Avec options</div>
+                </div>
+            </div>
+            
+            <div class="preview-actions">
+                <a href="/create-form?template={{ template_type }}" class="btn btn-primary">
+                    ✨ Utiliser ce template
+                </a>
+                <button onclick="window.close()" class="btn btn-secondary">
+                    👁️ Fermer l'aperçu
+                </button>
+            </div>
+        </div>
+
+        <!-- Aperçu du formulaire -->
+        <div class="form-container">
+            <div class="form-header">
+                <h2 class="form-title">{{ template.title }}</h2>
+                <p class="form-description">{{ template.description }}</p>
+            </div>
+
+            <div class="form-content">
+                <div class="fields-preview">
+                    {% for field in template.fields %}
+                        <div class="field-preview">
+                            <div class="field-label">
+                                {{ field.label }}
+                                {% if field.required %}
+                                    <span class="required-indicator">*</span>
+                                {% endif %}
+                                <span class="field-type-badge">{{ field.type }}</span>
+                            </div>
+                            
+                            <div class="field-demo">
+                                {% if field.type == 'text' %}
+                                    📝 Champ de saisie textuel
+                                {% elif field.type == 'email' %}
+                                    📧 Adresse e-mail (avec validation)
+                                {% elif field.type == 'tel' %}
+                                    📱 Numéro de téléphone
+                                {% elif field.type == 'number' %}
+                                    🔢 Valeur numérique
+                                {% elif field.type == 'date' %}
+                                    📅 Sélecteur de date
+                                {% elif field.type == 'textarea' %}
+                                    📄 Zone de texte multiligne
+                                {% elif field.type == 'textarea_rich' %}
+                                    ✏️ Éditeur de texte enrichi (gras, italique, listes...)
+                                {% elif field.type == 'select' %}
+                                    📋 Menu déroulant (une seule option)
+                                {% elif field.type == 'multiselect' %}
+                                    ☑️ Sélection multiple
+                                {% elif field.type == 'radio' %}
+                                    ⚪ Boutons radio (choix unique)
+                                {% elif field.type == 'checkbox' %}
+                                    ☑️ Cases à cocher (choix multiples)
+                                {% elif field.type == 'file' %}
+                                    📁 Upload de fichier (glisser-déposer)
+                                {% else %}
+                                    🔸 {{ field.type|title }}
+                                {% endif %}
+                            </div>
+                            
+                            {% if field.options %}
+                                <div class="field-options">
+                                    {% for option in field.options %}
+                                        <span class="option-tag">{{ option }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <div class="disclaimer">
+                    ⚠️ Ceci est un aperçu du template. Le formulaire sera personnalisable après utilisation.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Animation des cartes au scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.animationDelay = '0s';
+                    entry.target.classList.add('fade-in');
+                }
+            });
+        }, observerOptions);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Observer tous les éléments
+            document.querySelectorAll('.field-preview').forEach((el, index) => {
+                el.style.animationDelay = `${index * 0.1}s`;
+                observer.observe(el);
+            });
+        });
+    </script>
+</body>
+</html> 

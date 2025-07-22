@@ -4,33 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ form_info.title }} - FormCraft</title>
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
     <style>
-        /* File: public_form.html */
-        /* Purpose: Interface publique pour formulaires sans sidebar admin */
-        /* Design: Style japonais épuré et responsive */
-        
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
         
         :root {
-            /* Style japonais - couleurs douces et naturelles */
             --bg-primary: #faf9f7;
             --bg-secondary: #f5f3f0;
-            --bg-card: rgba(255, 255, 255, 0.9);
-            --accent-primary: #2d5016;        /* Vert matcha foncé */
-            --accent-secondary: #e91e63;      /* Rose sakura */
+            --bg-card: rgba(255, 255, 255, 0.95);
+            --accent-primary: #2d5016;
+            --accent-secondary: #e91e63;
             --accent-gradient: linear-gradient(135deg, #4a7c59, #e91e63);
             --text-primary: #2c2c2c;
             --text-secondary: #666666;
             --text-muted: #999999;
             --border-color: rgba(45, 80, 22, 0.1);
-            --success-color: #4a7c59;         /* Vert bambou */
+            --success-color: #4a7c59;
             --danger-color: #d32f2f;
             --warning-color: #ff9800;
             --shadow-glow: 0 0 20px rgba(74, 124, 89, 0.2);
             --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.1);
-            --matcha-light: #8bc34a;          /* Vert matcha clair */
-            --sakura-light: #fce4ec;          /* Rose sakura clair */
-            --cream: #fff8e1;                 /* Crème */
+            --matcha-light: #8bc34a;
+            --sakura-light: #fce4ec;
+            --cream: #fff8e1;
         }
 
         * {
@@ -47,330 +44,1357 @@
                 radial-gradient(circle at 75% 75%, rgba(233, 30, 99, 0.05) 0%, transparent 50%);
             color: var(--text-primary);
             min-height: 100vh;
-            padding: 2rem 1rem;
+            padding: 1rem;
         }
 
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
+        /* === BANNIÈRE PERSONNALISÉE === */
+        .form-banner {
+            width: 100%;
+            max-height: 300px;
+            object-fit: cover;
+            border-radius: 1rem 1rem 0 0;
+            display: block;
+        }
+
+        .banner-overlay {
             position: relative;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 3rem;
-        }
-
-        .logo {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 2rem;
-            font-weight: 700;
             background: var(--accent-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 0.5rem;
-            animation: glow 3s ease-in-out infinite alternate;
+            color: white;
+            padding: 3rem 2rem;
+            text-align: center;
+            border-radius: 1rem 1rem 0 0;
         }
 
-        @keyframes glow {
-            from { filter: drop-shadow(0 0 5px rgba(74, 124, 89, 0.3)); }
-            to { filter: drop-shadow(0 0 15px rgba(233, 30, 99, 0.3)); }
-        }
-
-        .form-title {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 1rem;
-        }
-
-        .form-description {
-            color: var(--text-secondary);
-            font-size: 1.1rem;
-            margin-bottom: 2rem;
-            line-height: 1.6;
-        }
-
-        .form-card {
-            background: var(--bg-card);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--border-color);
-            border-radius: 1.5rem;
-            padding: 2.5rem;
-            box-shadow: var(--shadow-card);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .form-card::before {
+        .banner-overlay::before {
             content: '';
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
-            height: 4px;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 1rem 1rem 0 0;
+        }
+
+        .banner-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .banner-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .banner-description {
+            font-size: 1.2rem;
+            opacity: 0.95;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        /* === CONTAINER PRINCIPAL === */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .form-container {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: var(--shadow-card);
+            position: relative;
+        }
+
+        /* === HEADER SIMPLE (sans bannière) === */
+        .simple-header {
+            padding: 3rem 2rem 2rem;
+            text-align: center;
+            background: var(--bg-card);
+            border-radius: 1rem 1rem 0 0;
+        }
+
+        .form-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
             background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
-        /* Messages d'erreur */
-        .error-messages {
-            background: rgba(211, 47, 47, 0.1);
-            border: 1px solid rgba(211, 47, 47, 0.3);
-            border-radius: 0.75rem;
-            padding: 1rem;
+        .form-description {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            line-height: 1.6;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* === LOGO FORMCRAFT === */
+        .formcraft-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: var(--bg-card);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 0.5rem 1rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--accent-primary);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .formcraft-badge:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        /* === CONTENU FORMULAIRE === */
+        .form-content {
+            padding: 2rem;
+        }
+
+        .progress-bar {
+            background: var(--bg-secondary);
+            border-radius: 1rem;
+            height: 8px;
             margin-bottom: 2rem;
-            color: var(--danger-color);
+            overflow: hidden;
         }
 
-        .error-messages h4 {
-            margin-bottom: 0.5rem;
-            font-size: 1rem;
+        .progress-fill {
+            background: var(--accent-gradient);
+            height: 100%;
+            border-radius: 1rem;
+            transition: width 0.5s ease;
+            width: 0%;
         }
 
-        .error-messages ul {
-            margin: 0;
-            padding-left: 1.25rem;
+        .form-section {
+            margin-bottom: 2rem;
         }
 
-        .error-messages li {
-            margin-bottom: 0.25rem;
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--accent-primary);
+            position: relative;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 50px;
+            height: 2px;
+            background: var(--accent-secondary);
         }
 
         .form-group {
-            margin-bottom: 1.75rem;
+            margin-bottom: 1.5rem;
         }
 
-        .form-group label {
+        .form-label {
             display: block;
             font-weight: 600;
             color: var(--text-primary);
-            margin-bottom: 0.75rem;
-            font-size: 1rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
         }
 
-        .required {
+        .required-indicator {
             color: var(--danger-color);
             margin-left: 0.25rem;
+            font-weight: 700;
         }
 
-        .form-group input,
-        .form-group textarea {
+        .form-input,
+        .form-textarea,
+        .form-select {
             width: 100%;
-            padding: 1rem 1.25rem;
+            padding: 1rem;
             background: white;
             border: 2px solid var(--border-color);
             border-radius: 0.75rem;
             color: var(--text-primary);
             font-size: 1rem;
-            transition: all 0.3s ease;
             font-family: inherit;
-            line-height: 1.5;
+            transition: all 0.3s ease;
+            position: relative;
         }
 
-        .form-group textarea {
-            resize: vertical;
-            min-height: 120px;
-        }
-
-        .form-group input:focus,
-        .form-group textarea:focus {
+        .form-input:focus,
+        .form-textarea:focus,
+        .form-select:focus {
             outline: none;
             border-color: var(--accent-primary);
             box-shadow: 0 0 0 4px rgba(74, 124, 89, 0.1);
             background: var(--cream);
-            transform: translateY(-2px);
+            transform: translateY(-1px);
         }
 
-        .form-group input::placeholder,
-        .form-group textarea::placeholder {
+        .form-textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .form-input::placeholder,
+        .form-textarea::placeholder {
             color: var(--text-muted);
         }
 
-        /* Field error state */
-        .form-group.error input,
-        .form-group.error textarea {
-            border-color: var(--danger-color);
-            background: rgba(211, 47, 47, 0.05);
+        /* === CHAMPS SPÉCIAUX === */
+        .radio-group,
+        .checkbox-group {
+            display: grid;
+            gap: 0.75rem;
+            margin-top: 0.5rem;
+        }
+
+        .radio-option,
+        .checkbox-option {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem;
+            background: white;
+            border: 2px solid var(--border-color);
+            border-radius: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .radio-option:hover,
+        .checkbox-option:hover {
+            border-color: var(--accent-primary);
+            background: var(--sakura-light);
+            transform: translateY(-1px);
+        }
+
+        .radio-option.selected,
+        .checkbox-option.selected {
+            border-color: var(--accent-primary);
+            background: var(--cream);
+            box-shadow: 0 0 0 4px rgba(74, 124, 89, 0.1);
+        }
+
+        .radio-option input,
+        .checkbox-option input {
+            margin: 0;
+            transform: scale(1.2);
+        }
+
+        .option-label {
+            font-weight: 500;
+            color: var(--text-primary);
+            cursor: pointer;
+        }
+
+        /* === UPLOAD DE FICHIERS === */
+        .file-upload-area {
+            border: 2px dashed var(--border-color);
+            border-radius: 0.75rem;
+            padding: 2rem;
+            text-align: center;
+            background: var(--bg-secondary);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .file-upload-area:hover {
+            border-color: var(--accent-primary);
+            background: var(--cream);
+        }
+
+        .file-upload-area.dragover {
+            border-color: var(--accent-primary);
+            background: var(--sakura-light);
+            transform: scale(1.02);
+        }
+
+        .file-upload-icon {
+            font-size: 3rem;
+            color: var(--accent-primary);
+            margin-bottom: 1rem;
+        }
+
+        .file-upload-text {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .file-upload-hint {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .file-preview {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            display: none;
+        }
+
+        .file-preview.active {
+            display: block;
+        }
+
+        .preview-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem;
+            background: var(--bg-secondary);
+            border-radius: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .preview-icon {
+            font-size: 2rem;
+        }
+
+        .preview-info {
+            flex: 1;
+        }
+
+        .preview-name {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .preview-size {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .preview-image {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 0.5rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .remove-file {
+            background: var(--danger-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 2rem;
+            height: 2rem;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .remove-file:hover {
+            background: #b71c1c;
+            transform: scale(1.1);
+        }
+
+        /* === RICH TEXT EDITOR === */
+        .rich-text-container {
+            border: 2px solid var(--border-color);
+            border-radius: 0.75rem;
+            overflow: hidden;
+            background: white;
+            transition: all 0.3s ease;
+        }
+
+        .rich-text-container:focus-within {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 4px rgba(74, 124, 89, 0.1);
+        }
+
+        .ql-toolbar {
+            border: none !important;
+            border-bottom: 1px solid var(--border-color) !important;
+            background: var(--bg-secondary);
+        }
+
+        .ql-container {
+            border: none !important;
+            min-height: 120px;
+        }
+
+        /* === SÉLECTIONS MULTIPLES === */
+        .multiselect-container {
+            position: relative;
+        }
+
+        .multiselect-display {
+            min-height: 3rem;
+            border: 2px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 0.5rem;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .multiselect-display:focus {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 4px rgba(74, 124, 89, 0.1);
+        }
+
+        .selected-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .selected-tag {
+            background: var(--accent-primary);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 1rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .tag-remove {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 0.8rem;
+            padding: 0;
+            margin-left: 0.25rem;
+        }
+
+        .multiselect-placeholder {
+            color: var(--text-muted);
+            padding: 0.5rem;
+        }
+
+        /* === MESSAGES D'ERREUR === */
+        .error-messages {
+            margin-bottom: 2rem;
+        }
+
+        .error-message {
+            background: rgba(211, 47, 47, 0.1);
+            border: 1px solid var(--danger-color);
+            border-radius: 0.75rem;
+            padding: 1rem 1.25rem;
+            margin-bottom: 0.75rem;
+            color: var(--danger-color);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            animation: slideInDown 0.3s ease;
+        }
+
+        @keyframes slideInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* === BOUTON DE SOUMISSION === */
+        .submit-section {
+            margin-top: 3rem;
+            text-align: center;
         }
 
         .submit-btn {
-            width: 100%;
-            padding: 1.25rem 2rem;
             background: var(--accent-gradient);
             color: white;
             border: none;
-            border-radius: 1rem;
+            padding: 1.25rem 3rem;
+            border-radius: 0.75rem;
             font-size: 1.1rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
-            margin-top: 1rem;
+            min-width: 200px;
         }
 
         .submit-btn:hover {
-            transform: translateY(-3px);
+            transform: translateY(-2px);
             box-shadow: var(--shadow-glow);
         }
 
         .submit-btn:active {
-            transform: translateY(-1px);
+            transform: translateY(0);
         }
 
-        .footer {
-            text-align: center;
-            margin-top: 3rem;
-            padding: 2rem;
-            color: var(--text-muted);
-            font-size: 0.9rem;
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
         }
 
-        .powered-by {
-            display: inline-flex;
+        .btn-loading {
+            display: none;
             align-items: center;
             gap: 0.5rem;
-            color: var(--text-secondary);
-            text-decoration: none;
-            padding: 0.5rem 1rem;
-            border-radius: 0.5rem;
-            background: var(--sakura-light);
-            transition: all 0.3s ease;
         }
 
-        .powered-by:hover {
-            transform: translateY(-2px);
-            color: var(--accent-primary);
+        .btn-loading.active {
+            display: flex;
         }
 
-        /* Responsive */
+        .loading-spinner {
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* === FOOTER === */
+        .form-footer {
+            text-align: center;
+            padding: 1.5rem;
+            border-top: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        /* === RESPONSIVE === */
         @media (max-width: 768px) {
             body {
-                padding: 1rem 0.5rem;
+                padding: 0.5rem;
             }
 
-            .container {
-                max-width: 100%;
+            .banner-title {
+                font-size: 2rem;
             }
 
-            .form-card {
-                padding: 1.5rem;
-                border-radius: 1rem;
+            .banner-description {
+                font-size: 1rem;
             }
 
             .form-title {
-                font-size: 1.5rem;
+                font-size: 2rem;
             }
 
-            .logo {
-                font-size: 1.5rem;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .form-card {
-                padding: 1rem;
-            }
-
-            .form-group input,
-            .form-group textarea {
-                padding: 0.875rem 1rem;
+            .form-content {
+                padding: 1.5rem;
             }
 
             .submit-btn {
-                padding: 1rem 1.5rem;
+                width: 100%;
+                padding: 1rem 2rem;
             }
+
+            .radio-group,
+            .checkbox-group {
+                gap: 0.5rem;
+            }
+
+            .radio-option,
+            .checkbox-option {
+                padding: 0.75rem;
+            }
+        }
+
+        /* === ANIMATIONS === */
+        .fade-in {
+            animation: fadeIn 0.6s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-group {
+            animation: slideUp 0.4s ease;
+            animation-fill-mode: both;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* === RATING ÉTOILES === */
+        .rating-stars {
+            display: flex;
+            gap: 0.25rem;
+            margin-top: 0.5rem;
+        }
+
+        .star {
+            width: 2.5rem;
+            height: 2.5rem;
+            border: none;
+            background: none;
+            font-size: 2rem;
+            color: #ddd;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .star:hover,
+        .star.active {
+            color: #ffd700;
+            transform: scale(1.1);
+        }
+
+        .star:hover ~ .star {
+            color: #ddd;
+        }
+
+        .rating-container:hover .star {
+            color: #ddd;
+        }
+
+        .rating-container:hover .star:hover,
+        .rating-container:hover .star:hover ~ .star {
+            color: #ffd700;
+        }
+
+        .rating-value {
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+
+        /* === HEADERS DE SECTION === */
+        .section-header {
+            background: var(--accent-gradient);
+            color: white;
+            padding: 1rem 1.5rem;
+            margin: 2rem -2rem 1.5rem -2rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+            border-radius: 0;
+        }
+
+        .section-header:first-child {
+            margin-top: -2rem;
+            border-radius: 1rem 1rem 0 0;
+        }
+
+        /* === UPLOAD IMAGES MULTIPLES === */
+        .image-upload-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .image-upload-slot {
+            aspect-ratio: 1;
+            border: 2px dashed var(--border-color);
+            border-radius: 0.75rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .image-upload-slot:hover {
+            border-color: var(--accent-primary);
+            background: var(--cream);
+        }
+
+        .image-upload-slot.has-image {
+            border-style: solid;
+            border-color: var(--accent-primary);
+        }
+
+        .image-preview {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 0.5rem;
+        }
+
+        .image-upload-icon {
+            font-size: 2rem;
+            color: var(--accent-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .image-upload-text {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        .remove-image {
+            position: absolute;
+            top: 0.25rem;
+            right: 0.25rem;
+            background: var(--danger-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 1.5rem;
+            height: 1.5rem;
+            cursor: pointer;
+            font-size: 0.8rem;
+            display: none;
+        }
+
+        .image-upload-slot.has-image:hover .remove-image {
+            display: block;
+        }
+
+        /* === CHAMPS TIME === */
+        .time-input {
+            appearance: none;
+            background: white;
+            border: 2px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            font-size: 1rem;
+            color: var(--text-primary);
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .time-input:focus {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 4px rgba(74, 124, 89, 0.1);
+            outline: none;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1 class="logo">FormCraft</h1>
-            <h2 class="form-title">{{ form_info.title }}</h2>
-            {% if form_info.description %}
-                <p class="form-description">{{ form_info.description }}</p>
-            {% endif %}
-        </div>
+    <div class="container fade-in">
+        <!-- Badge FormCraft -->
+        <a href="https://formcraft.app" class="formcraft-badge" target="_blank">
+            ⚡ Powered by FormCraft
+        </a>
 
-        <div class="form-card">
-            {% if errors %}
-                <div class="error-messages">
-                    <h4>⚠️ Veuillez corriger les erreurs suivantes :</h4>
-                    <ul>
-                        {% for error in errors %}
-                            <li>{{ error }}</li>
-                        {% endfor %}
-                    </ul>
+        <div class="form-container">
+            <!-- Bannière ou Header simple -->
+            {% if form_info.banner_url %}
+                <div class="banner-overlay" style="background-image: url('{{ form_info.banner_url }}'); background-size: cover; background-position: center;">
+                    <div class="banner-content">
+                        <h1 class="banner-title">{{ form_info.title }}</h1>
+                        {% if form_info.description %}
+                            <p class="banner-description">{{ form_info.description }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            {% else %}
+                <div class="simple-header">
+                    <h1 class="form-title">{{ form_info.title }}</h1>
+                    {% if form_info.description %}
+                        <p class="form-description">{{ form_info.description }}</p>
+                    {% endif %}
                 </div>
             {% endif %}
 
-            <form method="POST">
-                {% for field in fields %}
-                    <div class="form-group">
-                        <label for="{{ field.name }}">
-                            {{ field.label }}
-                            {% if field.required %}<span class="required">*</span>{% endif %}
-                        </label>
-                        
-                        {% if field.type == 'textarea' %}
-                            <textarea id="{{ field.name }}" 
-                                    name="{{ field.name }}" 
-                                    placeholder="Saisissez {{ field.label|lower }}"
-                                    {% if field.required %}required{% endif %}>{{ form_data.get(field.name, '') }}</textarea>
-                        {% else %}
-                            <input type="{{ field.type }}" 
-                                   id="{{ field.name }}" 
-                                   name="{{ field.name }}" 
-                                   placeholder="Saisissez {{ field.label|lower }}"
-                                   value="{{ form_data.get(field.name, '') }}"
-                                   {% if field.required %}required{% endif %}
-                                   {% if field.type == 'number' %}min="0"{% endif %}>
-                        {% endif %}
+            <!-- Contenu du formulaire -->
+            <div class="form-content">
+                <!-- Barre de progression -->
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+
+                <!-- Messages d'erreur -->
+                {% if errors %}
+                    <div class="error-messages">
+                        {% for error in errors %}
+                            <div class="error-message">
+                                <span>⚠️</span>
+                                <span>{{ error }}</span>
+                            </div>
+                        {% endfor %}
                     </div>
-                {% endfor %}
+                {% endif %}
 
-                <button type="submit" class="submit-btn">
-                    ✨ Envoyer {{ form_info.title }}
-                </button>
-            </form>
-        </div>
+                <!-- Formulaire -->
+                <form method="POST" enctype="multipart/form-data" id="dynamicForm">
+                    {% set field_groups = fields | groupby('section') if fields[0].get('section') else [('default', fields)] %}
+                    
+                    {% for section_name, section_fields in field_groups %}
+                        {% if section_name != 'default' %}
+                            <div class="form-section">
+                                <h2 class="section-title">{{ section_name }}</h2>
+                        {% endif %}
+                        
+                        {% for field in section_fields %}
+                            <div class="form-group" style="animation-delay: {{ loop.index0 * 0.1 }}s;">
+                                <label class="form-label" for="{{ field.name }}">
+                                    {{ field.label }}
+                                    {% if field.required %}
+                                        <span class="required-indicator">*</span>
+                                    {% endif %}
+                                </label>
+                                
+                                {% if field.type == 'textarea' %}
+                                    <textarea id="{{ field.name }}" 
+                                              name="{{ field.name }}" 
+                                              class="form-textarea"
+                                              placeholder="Saisissez {{ field.label|lower }}"
+                                              {% if field.required %}required{% endif %}
+                                              oninput="updateProgress()">{{ form_data.get(field.name, '') }}</textarea>
+                                
+                                {% elif field.type == 'textarea_rich' %}
+                                    <div class="rich-text-container">
+                                        <div id="{{ field.name }}_editor"></div>
+                                        <input type="hidden" id="{{ field.name }}" name="{{ field.name }}" 
+                                               {% if field.required %}required{% endif %}
+                                               value="{{ form_data.get(field.name, '') }}">
+                                    </div>
+                                
+                                {% elif field.type == 'select' %}
+                                    <select id="{{ field.name }}" 
+                                            name="{{ field.name }}" 
+                                            class="form-select"
+                                            {% if field.required %}required{% endif %}
+                                            onchange="updateProgress()">
+                                        <option value="">-- Sélectionnez {{ field.label|lower }} --</option>
+                                        {% for option in field.options %}
+                                            <option value="{{ option }}" 
+                                                    {% if form_data.get(field.name) == option %}selected{% endif %}>
+                                                {{ option }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                
+                                {% elif field.type == 'multiselect' %}
+                                    <div class="multiselect-container">
+                                        <div class="multiselect-display" onclick="toggleMultiselect('{{ field.name }}')">
+                                            <div class="selected-tags" id="{{ field.name }}_tags">
+                                                <div class="multiselect-placeholder">Cliquez pour sélectionner...</div>
+                                            </div>
+                                        </div>
+                                        <select id="{{ field.name }}" name="{{ field.name }}[]" multiple style="display: none;" 
+                                                {% if field.required %}required{% endif %}>
+                                            {% for option in field.options %}
+                                                <option value="{{ option }}">{{ option }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                
+                                {% elif field.type == 'radio' %}
+                                    <div class="radio-group">
+                                        {% for option in field.options %}
+                                            <div class="radio-option" onclick="selectRadio('{{ field.name }}', '{{ option }}')">
+                                                <input type="radio" 
+                                                       id="{{ field.name }}_{{ loop.index0 }}"
+                                                       name="{{ field.name }}" 
+                                                       value="{{ option }}"
+                                                       {% if field.required and loop.first %}required{% endif %}
+                                                       {% if form_data.get(field.name) == option %}checked{% endif %}
+                                                       onchange="updateProgress()">
+                                                <label class="option-label" for="{{ field.name }}_{{ loop.index0 }}">
+                                                    {{ option }}
+                                                </label>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                
+                                {% elif field.type == 'checkbox' %}
+                                    <div class="checkbox-group">
+                                        {% for option in field.options %}
+                                            <div class="checkbox-option" onclick="toggleCheckbox('{{ field.name }}', '{{ option }}')">
+                                                <input type="checkbox" 
+                                                       id="{{ field.name }}_{{ loop.index0 }}"
+                                                       name="{{ field.name }}[]" 
+                                                       value="{{ option }}"
+                                                       onchange="updateProgress()">
+                                                <label class="option-label" for="{{ field.name }}_{{ loop.index0 }}">
+                                                    {{ option }}
+                                                </label>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                
+                                {% elif field.type == 'file' %}
+                                    <div class="file-upload-area" 
+                                         onclick="document.getElementById('{{ field.name }}').click()"
+                                         ondragover="handleDragOver(event)"
+                                         ondrop="handleFileDrop(event, '{{ field.name }}')">
+                                        <div class="file-upload-icon">📁</div>
+                                        <div class="file-upload-text">Cliquez ou glissez vos fichiers ici</div>
+                                        <div class="file-upload-hint">
+                                            Formats acceptés : images, PDF, documents (max 16MB)
+                                        </div>
+                                        <input type="file" 
+                                               id="{{ field.name }}" 
+                                               name="{{ field.name }}" 
+                                               style="display: none;"
+                                               {% if field.required %}required{% endif %}
+                                               onchange="handleFileSelect(this)"
+                                               accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.xls,.xlsx,.txt,.zip">
+                                    </div>
+                                    <div class="file-preview" id="{{ field.name }}_preview"></div>
+                                
+                                {% elif field.type == 'rating_stars' %}
+                                    <div class="rating-container" id="{{ field.name }}">
+                                        {% for i in range(5) %}
+                                            <button type="button" class="star" onclick="rateStars('{{ field.name }}', {{ i + 1 }})">
+                                                <span class="star-icon">★</span>
+                                            </button>
+                                        {% endfor %}
+                                        <div class="rating-value" id="{{ field.name }}_value"></div>
+                                    </div>
+                                
+                                {% elif field.type == 'section_header' %}
+                                    <div class="section-header">{{ field.label }}</div>
+                                
+                                {% elif field.type == 'file_image' %}
+                                    <div class="image-upload-grid">
+                                        <div class="image-upload-slot" onclick="document.getElementById('{{ field.name }}').click()">
+                                            <div class="image-upload-icon">📸</div>
+                                            <div class="image-upload-text">Cliquez pour ajouter une image</div>
+                                            <input type="file" 
+                                                   id="{{ field.name }}" 
+                                                   name="{{ field.name }}" 
+                                                   style="display: none;"
+                                                   {% if field.required %}required{% endif %}
+                                                   onchange="handleImageSelect(this)">
+                                        </div>
+                                        <div class="image-preview" id="{{ field.name }}_preview"></div>
+                                    </div>
+                                
+                                {% elif field.type == 'file_multiple_images' %}
+                                    <div class="image-upload-grid">
+                                        <div class="image-upload-slot" onclick="document.getElementById('{{ field.name }}').click()">
+                                            <div class="image-upload-icon">📸</div>
+                                            <div class="image-upload-text">Cliquez pour ajouter des images</div>
+                                            <input type="file" 
+                                                   id="{{ field.name }}" 
+                                                   name="{{ field.name }}[]" 
+                                                   style="display: none;"
+                                                   {% if field.required %}required{% endif %}
+                                                   multiple onchange="handleMultipleImageSelect(this)">
+                                        </div>
+                                        <div class="image-preview" id="{{ field.name }}_preview"></div>
+                                    </div>
+                                
+                                {% elif field.type == 'time' %}
+                                    <input type="time" 
+                                           id="{{ field.name }}" 
+                                           name="{{ field.name }}" 
+                                           class="time-input"
+                                           {% if field.required %}required{% endif %}
+                                           value="{{ form_data.get(field.name, '') }}"
+                                           oninput="updateProgress()">
+                                
+                                {% else %}
+                                    <input type="{{ field.type }}" 
+                                           id="{{ field.name }}" 
+                                           name="{{ field.name }}" 
+                                           class="form-input"
+                                           placeholder="Saisissez {{ field.label|lower }}"
+                                           {% if field.required %}required{% endif %}
+                                           {% if field.type == 'number' %}min="0"{% endif %}
+                                           value="{{ form_data.get(field.name, '') }}"
+                                           oninput="updateProgress()">
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                        
+                        {% if section_name != 'default' %}
+                            </div>
+                        {% endif %}
+                    {% endfor %}
 
-        <div class="footer">
-            <p>Formulaire sécurisé et privé</p>
-            <a href="https://formcraft.example.com" class="powered-by" target="_blank">
-                <span>⚡</span>
-                <span>Powered by FormCraft</span>
-            </a>
+                    <!-- Bouton de soumission -->
+                    <div class="submit-section">
+                        <button type="submit" class="submit-btn" id="submitBtn">
+                            <span class="btn-text">🚀 Envoyer le formulaire</span>
+                            <span class="btn-loading">
+                                <div class="loading-spinner"></div>
+                                <span>Envoi en cours...</span>
+                            </span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Footer -->
+            <div class="form-footer">
+                <p>Ce formulaire est sécurisé et vos données sont protégées</p>
+            </div>
         </div>
     </div>
 
     <script>
-        // Animation au chargement
-        document.addEventListener('DOMContentLoaded', function() {
-            const formCard = document.querySelector('.form-card');
-            formCard.style.opacity = '0';
-            formCard.style.transform = 'translateY(30px)';
-            
-            setTimeout(() => {
-                formCard.style.transition = 'all 0.8s ease';
-                formCard.style.opacity = '1';
-                formCard.style.transform = 'translateY(0)';
-            }, 100);
+        let richTextEditors = {};
+        let totalFields = {{ fields|length }};
+        let filledFields = 0;
 
-            // Animation des champs lors du focus
-            const inputs = document.querySelectorAll('input, textarea');
-            inputs.forEach(input => {
-                input.addEventListener('focus', function() {
-                    this.parentElement.style.transform = 'scale(1.02)';
-                });
-                
-                input.addEventListener('blur', function() {
-                    this.parentElement.style.transform = 'scale(1)';
-                });
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeRichTextEditors();
+            updateProgress();
+            
+            // Animation des champs
+            const formGroups = document.querySelectorAll('.form-group');
+            formGroups.forEach((group, index) => {
+                setTimeout(() => {
+                    group.style.opacity = '1';
+                    group.style.transform = 'translateY(0)';
+                }, index * 100);
             });
         });
+
+        // Éditeurs rich text
+        function initializeRichTextEditors() {
+            document.querySelectorAll('[id$="_editor"]').forEach(container => {
+                const fieldName = container.id.replace('_editor', '');
+                const hiddenInput = document.getElementById(fieldName);
+                
+                if (container && hiddenInput) {
+                    const quill = new Quill(container, {
+                        theme: 'snow',
+                        placeholder: 'Saisissez votre texte ici...',
+                        modules: {
+                            toolbar: [
+                                [{ 'header': [1, 2, 3, false] }],
+                                ['bold', 'italic', 'underline'],
+                                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                                [{ 'color': [] }],
+                                ['link'],
+                                ['clean']
+                            ]
+                        }
+                    });
+                    
+                    richTextEditors[fieldName] = quill;
+                    
+                    // Valeur initiale
+                    if (hiddenInput.value) {
+                        quill.root.innerHTML = hiddenInput.value;
+                    }
+                    
+                    // Synchronisation
+                    quill.on('text-change', function() {
+                        hiddenInput.value = quill.root.innerHTML;
+                        updateProgress();
+                        
+                        if (hiddenInput.hasAttribute('required')) {
+                            hiddenInput.setCustomValidity(
+                                quill.getText().trim().length === 0 ? 'Ce champ est requis' : ''
+                            );
+                        }
+                    });
+                }
+            });
+        }
+
+        // Gestion des boutons radio
+        function selectRadio(fieldName, value) {
+            const radioButtons = document.querySelectorAll(`input[name="${fieldName}"]`);
+            radioButtons.forEach(radio => {
+                const option = radio.closest('.radio-option');
+                if (radio.value === value) {
+                    radio.checked = true;
+                    option.classList.add('selected');
+                } else {
+                    option.classList.remove('selected');
+                }
+            });
+            updateProgress();
+        }
+
+        // Gestion des checkboxes
+        function toggleCheckbox(fieldName, value) {
+            const checkbox = document.querySelector(`input[name="${fieldName}[]"][value="${value}"]`);
+            const option = checkbox.closest('.checkbox-option');
+            
+            checkbox.checked = !checkbox.checked;
+            
+            if (checkbox.checked) {
+                option.classList.add('selected');
+            } else {
+                option.classList.remove('selected');
+            }
+            updateProgress();
+        }
+
+        // Multi-select
+        function toggleMultiselect(fieldName) {
+            // Créer un modal ou dropdown pour la sélection multiple
+            // Implémentation simplifiée pour la démo
+            const select = document.getElementById(fieldName);
+            const options = Array.from(select.options);
+            
+            // Pour la démo, on ouvre une alerte simple
+            const selected = options.filter(opt => opt.selected).map(opt => opt.value);
+            const newSelection = prompt(`Sélections actuelles: ${selected.join(', ')}\nEntrez les nouvelles sélections séparées par des virgules:`);
+            
+            if (newSelection !== null) {
+                // Reset selections
+                options.forEach(opt => opt.selected = false);
+                
+                // Apply new selections
+                const newSelections = newSelection.split(',').map(s => s.trim());
+                options.forEach(opt => {
+                    if (newSelections.includes(opt.value)) {
+                        opt.selected = true;
+                    }
+                });
+                
+                updateMultiselectDisplay(fieldName);
+                updateProgress();
+            }
+        }
+
+        function updateMultiselectDisplay(fieldName) {
+            const select = document.getElementById(fieldName);
+            const tagsContainer = document.getElementById(`${fieldName}_tags`);
+            const selected = Array.from(select.selectedOptions);
+            
+            if (selected.length > 0) {
+                tagsContainer.innerHTML = selected.map(opt => 
+                    `<div class="selected-tag">
+                        ${opt.value}
+                        <button type="button" class="tag-remove" onclick="removeMultiselectTag('${fieldName}', '${opt.value}')">×</button>
+                    </div>`
+                ).join('');
+            } else {
+                tagsContainer.innerHTML = '<div class="multiselect-placeholder">Cliquez pour sélectionner...</div>';
+            }
+        }
+
+        function removeMultiselectTag(fieldName, value) {
+            const select = document.getElementById(fieldName);
+            const option = select.querySelector(`option[value="${value}"]`);
+            if (option) {
+                option.selected = false;
+                updateMultiselectDisplay(fieldName);
+                updateProgress();
+            }
+        }
+
+        // Gestion des fichiers
+        function handleDragOver(event) {
+            event.preventDefault();
+            event.currentTarget.classList.add('dragover');
+        }
+
+        function handleFileDrop(event, fieldName) {
+            event.preventDefault();
+            event.currentTarget.classList.remove('dragover');
+            
+            const files = event.dataTransfer.files;
+            if (files.length > 0) {
+                const input = document.getElementById(fieldName);
+                input.files = files;
+                handleFileSelect(input);
+            }
+        }
+
+        function handleFileSelect(input) {
+            const file = input.files[0];
+            if (!file) return;
+            
+            const preview = document.getElementById(`${input.name}_preview`);
+            preview.classList.add('active');
+            
+            // Créer la prévisualisation
+            const isImage = file.type.startsWith('image/');
+            const fileSize = formatFileSize(file.size);
+            
+            let previewHTML = `
+                <div class="preview-item">
+                    ${isImage ? 
+                        `<img src="${URL.createObjectURL(file)}" class="preview-image" alt="Aperçu">` :
+                        `<div class="preview-icon">${getFileIcon(file.type)}</div>`
+                    }
+                    <div class="preview-info">
+                        <div class="preview-name">${file.name}</div>
+                        <div class="preview-size">${fileSize}</div>
+                    </div>
+                    <button type="button" class="remove-file" onclick="removeFile('${input.name}')">×</button>
+                </div>
+            `;
+            
+            preview.innerHTML = previewHTML;
+            updateProgress();
+        }
+
+        function removeFile(fieldName) {
+            const input = document.getElementById(fieldName);
+            const preview = document.getElementById(`${fieldName}_preview`);
+            
+            input.value = '';
+            preview.classList.remove('active');
+            preview.innerHTML = '';
+            updateProgress();
+        }
+
+        function getFileIcon(mimeType) {
+            if (mimeType.includes('pdf')) return '📄';
+            if (mimeType.includes('word')) return '📝';
+            if (mimeType.includes('excel') || mimeType.includes('spreadsheet')) return '📊';
+            if (mimeType.includes('zip') || mimeType.includes('archive')) return '🗜️';
+            return '📎';
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // Mise à jour de la barre de progression
+        function updateProgress() {
+            const inputs = document.querySelectorAll('input[required], select[required], textarea[required]');
+            let filled = 0;
+            
+            inputs.forEach(input => {
+                if (input.type === 'checkbox' || input.type === 'radio') {
+                    const name = input.name.replace('[]', '');
+                    const checked = document.querySelector(`input[name="${input.name}"]:checked`) || 
+                                   document.querySelector(`input[name="${name}"]:checked`);
+                    if (checked) filled++;
+                } else if (input.value && input.value.trim() !== '') {
+                    filled++;
+                }
+            });
+            
+            // Vérifier les éditeurs rich text
+            Object.keys(richTextEditors).forEach(fieldName => {
+                const editor = richTextEditors[fieldName];
+                const input = document.getElementById(fieldName);
+                if (input.hasAttribute('required') && editor.getText().trim()) {
+                    filled++;
+                }
+            });
+            
+            const progress = inputs.length > 0 ? (filled / inputs.length) * 100 : 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+        }
+
+        // Soumission du formulaire
+        document.getElementById('dynamicForm').addEventListener('submit', function(e) {
+            const submitBtn = document.getElementById('submitBtn');
+            const btnText = submitBtn.querySelector('.btn-text');
+            const btnLoading = submitBtn.querySelector('.btn-loading');
+            
+            // Synchroniser les éditeurs rich text
+            Object.keys(richTextEditors).forEach(fieldName => {
+                const editor = richTextEditors[fieldName];
+                const hiddenInput = document.getElementById(fieldName);
+                hiddenInput.value = editor.root.innerHTML;
+            });
+            
+            // Animation de chargement
+            submitBtn.disabled = true;
+            btnText.style.display = 'none';
+            btnLoading.classList.add('active');
+            
+            // En cas d'erreur, réactiver le bouton
+            setTimeout(() => {
+                if (submitBtn.disabled) {
+                    submitBtn.disabled = false;
+                    btnText.style.display = 'block';
+                    btnLoading.classList.remove('active');
+                }
+            }, 10000); // 10 secondes de timeout
+        });
+
+        // Effet de focus sur les options radio/checkbox
+        document.querySelectorAll('.radio-option, .checkbox-option').forEach(option => {
+            option.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-2px)';
+            });
+            
+            option.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+
+        // Gestion des étoiles de notation
+        function rateStars(fieldName, rating) {
+            const stars = document.querySelectorAll(`#${fieldName} .star`);
+            const ratingValue = document.getElementById(`${fieldName}_value`);
+
+            stars.forEach((star, index) => {
+                if (index < rating) {
+                    star.classList.add('active');
+                } else {
+                    star.classList.remove('active');
+                }
+            });
+
+            ratingValue.textContent = `${rating} étoile${rating > 1 ? 's' : ''}`;
+            updateProgress();
+        }
+
+        // Gestion des images
+        function handleImageSelect(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const preview = document.getElementById(`${input.name}_preview`);
+            preview.classList.add('active');
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.innerHTML = `<img src="${e.target.result}" class="image-preview" alt="Aperçu">`;
+            };
+            reader.readAsDataURL(file);
+            updateProgress();
+        }
+
+        function handleMultipleImageSelect(input) {
+            const files = input.files;
+            const preview = document.getElementById(`${input.name}_preview`);
+            preview.innerHTML = ''; // Clear previous previews
+
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        preview.innerHTML += `<img src="${e.target.result}" class="image-preview" alt="Aperçu">`;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+            updateProgress();
+        }
     </script>
 </body>
 </html> 

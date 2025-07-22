@@ -394,6 +394,15 @@
                         <textarea id="form_description" name="form_description" 
                                   placeholder="Décrivez brièvement l'objectif de ce formulaire"></textarea>
                     </div>
+                    
+                    <div class="form-group">
+                        <label for="banner_url">🖼️ Bannière personnalisée (URL d'image - optionnel)</label>
+                        <input type="url" id="banner_url" name="banner_url" 
+                               placeholder="https://exemple.com/image-banniere.jpg">
+                        <small style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.5rem; display: block;">
+                            💡 Ajoutez une image de bannière pour personnaliser l'apparence de votre formulaire public
+                        </small>
+                    </div>
                 </div>
 
                 <div class="form-section">
@@ -464,6 +473,130 @@
     </div>
 
     <script>
+        // Données du template si disponible
+        const templateData = {{ template_data|tojson if template_data else 'null' }};
+        const templateType = {{ template_type|tojson if template_type else 'null' }};
+        
+        // Initialisation du formulaire avec template
+        document.addEventListener('DOMContentLoaded', function() {
+            if (templateData) {
+                // Préremplir les informations du formulaire
+                document.getElementById('form_title').value = templateData.title;
+                document.getElementById('form_description').value = templateData.description;
+                
+                // Générer un nom basé sur le type de template
+                const suggestedName = templateType + '_' + Date.now().toString().slice(-6);
+                document.getElementById('form_name').value = suggestedName;
+                
+                // Ajouter les champs du template
+                templateData.fields.forEach((field, index) => {
+                    if (index === 0) {
+                        // Modifier le premier champ existant
+                        populateExistingField(field, 0);
+                    } else {
+                        // Ajouter de nouveaux champs
+                        addFieldFromTemplate(field);
+                    }
+                });
+                
+                // Afficher un message d'information
+                const notification = document.createElement('div');
+                notification.className = 'template-notification';
+                notification.innerHTML = `
+                    <div style="background: rgba(74, 124, 89, 0.1); border: 1px solid #4a7c59; border-radius: 0.75rem; padding: 1rem; margin-bottom: 1rem; color: #4a7c59;">
+                        ✨ <strong>Template "${templateData.title}" chargé!</strong><br>
+                        Vous pouvez modifier tous les champs selon vos besoins.
+                    </div>
+                `;
+                document.querySelector('.form-card').insertBefore(notification, document.querySelector('.form-section'));
+            }
+        });
+        
+        function populateExistingField(fieldData, index) {
+            const existingField = document.querySelector('.field-item');
+            if (existingField) {
+                const inputs = existingField.querySelectorAll('input, select, textarea');
+                inputs[0].value = fieldData.name; // field_name
+                inputs[1].value = fieldData.label; // field_label
+                inputs[2].value = fieldData.type; // field_type
+                
+                // Gérer les champs requis
+                const checkbox = existingField.querySelector('input[type="checkbox"]');
+                if (checkbox) checkbox.checked = fieldData.required;
+                
+                // Gérer les options
+                if (fieldData.options) {
+                    const optionsTextarea = existingField.querySelector('textarea[name="field_options[]"]');
+                    if (optionsTextarea) {
+                        optionsTextarea.value = fieldData.options.join('\n');
+                        optionsTextarea.parentElement.style.display = 'block';
+                    }
+                }
+                
+                // Déclencher l'affichage des options si nécessaire
+                toggleOptionsInput(inputs[2]);
+            }
+        }
+        
+        function addFieldFromTemplate(fieldData) {
+            const fieldsList = document.getElementById('fields-list');
+            const fieldItem = document.createElement('div');
+            fieldItem.className = 'field-item';
+            
+            const optionsHtml = fieldData.options ? `
+                <div class="form-group options-container" style="display: block;">
+                    <label>Options (une par ligne)</label>
+                    <textarea name="field_options[]" placeholder="Option 1\nOption 2\nOption 3">${fieldData.options.join('\n')}</textarea>
+                </div>
+            ` : `
+                <div class="form-group options-container" style="display: none;">
+                    <label>Options (une par ligne)</label>
+                    <textarea name="field_options[]" placeholder="Option 1\nOption 2\nOption 3"></textarea>
+                </div>
+            `;
+            
+            fieldItem.innerHTML = `
+                <div class="field-row">
+                    <div class="form-group">
+                        <label>Nom du champ</label>
+                        <input type="text" name="field_name[]" value="${fieldData.name}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Libellé affiché</label>
+                        <input type="text" name="field_label[]" value="${fieldData.label}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Type</label>
+                        <select name="field_type[]" required onchange="toggleOptionsInput(this)">
+                            <option value="text" ${fieldData.type === 'text' ? 'selected' : ''}>Texte</option>
+                            <option value="email" ${fieldData.type === 'email' ? 'selected' : ''}>Email</option>
+                            <option value="tel" ${fieldData.type === 'tel' ? 'selected' : ''}>Téléphone</option>
+                            <option value="number" ${fieldData.type === 'number' ? 'selected' : ''}>Nombre</option>
+                            <option value="date" ${fieldData.type === 'date' ? 'selected' : ''}>Date</option>
+                            <option value="textarea" ${fieldData.type === 'textarea' ? 'selected' : ''}>Zone de texte</option>
+                            <option value="textarea_rich" ${fieldData.type === 'textarea_rich' ? 'selected' : ''}>Texte enrichi</option>
+                            <option value="select" ${fieldData.type === 'select' ? 'selected' : ''}>Liste déroulante</option>
+                            <option value="multiselect" ${fieldData.type === 'multiselect' ? 'selected' : ''}>Sélection multiple</option>
+                            <option value="radio" ${fieldData.type === 'radio' ? 'selected' : ''}>Boutons radio</option>
+                            <option value="checkbox" ${fieldData.type === 'checkbox' ? 'selected' : ''}>Cases à cocher</option>
+                            <option value="file" ${fieldData.type === 'file' ? 'selected' : ''}>Fichier</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="field_required[]" value="1" ${fieldData.required ? 'checked' : ''}>
+                            <span class="checkmark"></span>
+                            Obligatoire
+                        </label>
+                    </div>
+                    <button type="button" class="remove-field-btn" onclick="removeField(this)">✕</button>
+                </div>
+                ${optionsHtml}
+            `;
+            
+            fieldsList.appendChild(fieldItem);
+        }
+
         function addField() {
             const fieldsList = document.getElementById('fields-list');
             const fieldItem = document.createElement('div');
